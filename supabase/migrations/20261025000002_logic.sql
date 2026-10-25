@@ -510,6 +510,25 @@ begin
 end;
 $$;
 
+-- 비밀번호 초기화: 임시 비밀번호를 만들어 돌려주고, 다음 로그인 때 바꾸게 한다
+create or replace function public.admin_reset_password(p_id uuid) returns text
+language plpgsql security definer set search_path = public, extensions as $$
+declare
+  a profiles := private.require_admin();
+  chars text := 'abcdefghjkmnpqrstuvwxyz23456789';
+  pw text := '';
+begin
+  if not exists (select 1 from profiles where id = p_id) then raise exception '없는 사용자예요.'; end if;
+  for i in 1..10 loop
+    pw := pw || substr(chars, 1 + (get_byte(extensions.gen_random_bytes(1), 0) % length(chars)), 1);
+  end loop;
+  update auth.users set encrypted_password = extensions.crypt(pw, extensions.gen_salt('bf')), updated_at = now() where id = p_id;
+  update profiles set must_change_pw = true where id = p_id;
+  perform private.audit(a.id, 'user.reset_password', jsonb_build_object('id', p_id));
+  return pw;
+end;
+$$;
+
 -- ---------- 주기 작업 (pg_cron이 5분마다 실행, 여러 번 돌아도 알림은 한 번) ----------
 create or replace function private.run_jobs() returns void
 language plpgsql security definer set search_path = public as $$
@@ -588,3 +607,4 @@ revoke all on all functions in schema private from public, anon, authenticated;
 revoke execute on all functions in schema public from public, anon;
 grant execute on all functions in schema public to authenticated;
 grant usage on schema public to anon, authenticated;
+grant execute on function public.precheck_signup(text, text) to anon;

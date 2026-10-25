@@ -19,6 +19,7 @@ export default function Login({ onLogin }) {
       } else {
         if (f.password !== f.password2) throw new Error('비밀번호 확인이 달라요.');
         const r = await api('/auth/register', { method: 'POST', body: f });
+        if (r.user) return onLogin(r.user);   // 첫 가입자(관리자)는 바로 들어간다
         setMsg({ ok: true, text: r.message });
         setMode('login');
       }
@@ -28,7 +29,7 @@ export default function Login({ onLogin }) {
   }
 
   return (
-    <div className="page narrow">
+    <div className="page narrow pad">
       <div className="hero">
         <img src="/icon.svg" alt="" width="64" height="64" />
         <h1>TC 점심</h1>

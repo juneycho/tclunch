@@ -190,3 +190,24 @@ test('로그인 안 한 사용자(anon)는 아무것도 못 함', async () => {
   await rejects(db.query("select public.get_calendar('2026-11')"), /permission denied/);
   await db.query('rollback');
 });
+
+test('관리자 비밀번호 초기화', async () => {
+  await db.query("update auth.users set encrypted_password = 'old' where id = $1", [users.kim]);
+  await rejects(rpc('lee', 'admin_reset_password', { p_id: users.kim }), /관리자만/);
+  const pw = await rpc('admin', 'admin_reset_password', { p_id: users.kim });
+  assert.match(pw, /^[a-z2-9]{10}$/);
+  const r = (await db.query('select encrypted_password = extensions.crypt($2, encrypted_password) ok from auth.users where id = $1', [users.kim, pw])).rows[0];
+  assert.equal(r.ok, true);
+  assert.equal((await db.query('select must_change_pw from profiles where id = $1', [users.kim])).rows[0].must_change_pw, true);
+});
+
+test('가입 전 확인(precheck)은 로그인 없이 가능, 비밀값은 메타데이터에 남지 않음', async () => {
+  await db.query('begin');
+  await db.query('set local role anon');
+  const r = await db.query("select public.precheck_signup('tc-2026', 'kim') v, public.precheck_signup('nope', 'park') w, public.precheck_signup('tc-2026', 'park') x");
+  await db.query('rollback');
+  assert.deepEqual(r.rows[0], { v: '이미 있는 아이디예요.', w: '초대 코드가 맞지 않아요. 관리자에게 물어봐 주세요.', x: null });
+  const meta = (await db.query('select raw_user_meta_data m from auth.users where id = $1', [users.kim])).rows[0].m;
+  assert.equal(meta.admin_token, undefined);
+  assert.equal(meta.invite_code, undefined);
+});

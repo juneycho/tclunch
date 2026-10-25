@@ -13,9 +13,6 @@ enable_confirmations = false
 double_confirm_changes = false
 secure_password_change = false
 
-[functions.admin-users]
-verify_jwt = true
-
 [functions.push-dispatch]
 # pg_cron이 비밀값 헤더로 호출하고, 공개키 조회는 로그인 없이 되므로 JWT 검사는 끈다
 verify_jwt = false

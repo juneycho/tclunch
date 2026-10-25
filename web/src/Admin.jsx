@@ -22,7 +22,6 @@ export default function Admin({ user, onChange }) {
 function Users({ me }) {
   const [users, setUsers] = useState([]);
   const [msg, setMsg] = useState(null);
-  const [nu, setNu] = useState({ loginId: '', name: '', isCook: false });
   const load = useCallback(() => api('/admin/users').then((r) => setUsers(r.users)), []);
   useEffect(() => { load(); }, [load]);
 
@@ -31,15 +30,6 @@ function Users({ me }) {
     if (!window.confirm(`${u.name}님 비밀번호를 초기화할까요?`)) return;
     const r = await api(`/admin/users/${u.id}/reset-password`, { method: 'POST' });
     setMsg({ ok: true, text: `${u.name}님 임시 비밀번호: ${r.tempPassword} (본인에게 직접 전달해 주세요. 첫 로그인 때 바꾸게 돼요.)` });
-  }
-  async function create(e) {
-    e.preventDefault();
-    try {
-      const r = await api('/admin/users', { method: 'POST', body: nu });
-      setMsg({ ok: true, text: `${nu.name}님 계정 생성! 아이디 ${nu.loginId} / 임시 비밀번호 ${r.tempPassword}` });
-      setNu({ loginId: '', name: '', isCook: false });
-      load();
-    } catch (err) { setMsg({ ok: false, text: err.message }); }
   }
 
   const pending = users.filter((u) => u.status === 'pending');
@@ -85,14 +75,8 @@ function Users({ me }) {
         </div>
       </section>
       <section className="card">
-        <h3>직원 직접 추가</h3>
-        <p className="small muted">보통은 초대 코드로 본인이 가입하면 돼요. 휴대폰이 익숙지 않은 분은 여기서 만들어 임시 비밀번호를 알려 주세요.</p>
-        <form className="row gap wrap" onSubmit={create}>
-          <input placeholder="이름" value={nu.name} onChange={(e) => setNu({ ...nu, name: e.target.value })} required />
-          <input placeholder="아이디 (영문/숫자)" value={nu.loginId} onChange={(e) => setNu({ ...nu, loginId: e.target.value })} required autoCapitalize="none" />
-          <label className="check"><input type="checkbox" checked={nu.isCook} onChange={(e) => setNu({ ...nu, isCook: e.target.checked })} />요리사</label>
-          <button className="primary">추가</button>
-        </form>
+        <h3>새 직원 등록</h3>
+        <p className="small muted">새로 오신 분께 앱 주소와 초대 코드(관리자 &gt; 설정)를 알려 주세요. 본인이 아이디를 만들어 가입하면 위에 "가입 승인 대기"로 떠요. 비밀번호를 잊으면 "비번 초기화"로 임시 비밀번호를 알려 주면 돼요.</p>
       </section>
     </>
   );

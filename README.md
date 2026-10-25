@@ -1,69 +1,66 @@
-# TC 점심
+# TC LUNCH (TC 점심)
 
 회사 점심 신청 앱. 직원이 달력에서 먹을 날을 신청하면 **식사일 7일 전 23:59에 마감**되고, 요리사는 확정 인원을 보고 메뉴를 정합니다. 인원이 많으면 큰 메뉴를 나눠 먹고, 적으면 간단한 메뉴로 해서 식비를 아끼는 것이 목적입니다.
 
-휴대폰 브라우저에서 열고 "홈 화면에 추가"하면 앱처럼 설치되고(PWA), 휴대폰 알림도 받을 수 있습니다.
+테니스 앱(TENNIS-MASTER)과 같은 구조입니다: **Vite + React 화면 → Vercel**, **데이터·로그인 → Supabase**. 휴대폰에서 "홈 화면에 추가"하면 앱처럼 설치됩니다.
 
 ## 기능
 
 | 누가 | 할 수 있는 것 |
 | --- | --- |
 | 직원 | 본인 아이디로 로그인, 달력에서 신청/취소(마감 전까지), 손님 0~N명 추가, 식사 당일 "먹었어요" 출석 체크, 내 노쇼 횟수와 알림 보기 |
-| 요리사 | 2주간 식사일별 확정 인원(직원+손님) 보기, 메뉴 등록(신청자에게 알림), 출석 체크(오늘·어제), 식비 지출 입력 |
-| 관리자 | 가입 승인, 직원 추가/비활성화(전출), 역할 지정, 비밀번호 초기화, 예산 입력, 휴무일/운영일 지정, 마감 후 예외 수정, 노쇼 현황, 설정, 변경 기록 |
+| 요리사 | 2주간 식사일별 확정 인원(직원+손님), 메뉴 등록(신청자에게 알림), 출석 체크(오늘·어제), 식비 지출 입력 |
+| 관리자 | 가입 승인, 전출자 비활성화, 역할 지정, 비밀번호 초기화, 예산, 휴무일/운영일, 마감 후 예외 수정, 노쇼 현황, 설정, 변경 기록 |
 
-- **대리 신청 불가**: 신청 API는 로그인한 본인 것만 바꿉니다. 마감 후 예외는 관리자만 고칠 수 있고 기록이 남습니다.
-- **달력**: 날짜마다 총 인원, 내 신청(✓, +손님), 메뉴가 보입니다. 주말과 공휴일(2026~2027 대체공휴일 포함)은 기본 휴무입니다.
-- **노쇼**: 식사 당일 15시(설정 가능)까지 출석 체크가 안 된 신청자는 노쇼로 기록되고 본인에게 알림이 갑니다. 최근 90일 노쇼가 3회(설정 가능) 이상이면 관리자에게도 알림이 갑니다. 요리사/관리자가 출석으로 정정하면 노쇼에서 빠집니다.
-- **알림**: 마감 전날 미신청자 리마인드, 인원 확정 시 요리사에게 알림, 메뉴 등록 시 신청자에게 알림, 노쇼 알림, 가입 승인 요청. 앱 안 알림함 + 휴대폰 푸시.
-- **예산**: 기간별 총예산, 사용액, 남은 예산, 1인 1식 평균 비용을 모든 화면 위에 표시합니다.
+- **대리 신청 불가**: 모든 쓰기는 DB 함수가 로그인한 본인 기준으로 처리하고, 테이블에 직접 쓰는 권한은 없습니다(RLS).
+- **노쇼**: 식사 당일 15시까지 출석 체크가 안 된 신청자는 노쇼. 최근 90일 3회 이상이면 관리자에게도 알림. (숫자는 관리자 설정에서 변경)
+- **알림**: 마감 전날 리마인드, 인원 확정 → 요리사, 메뉴 등록 → 신청자, 노쇼, 가입 승인 요청. 앱 안 알림함 + (선택) 휴대폰 푸시.
+- **예산**: 총예산 / 사용 / 남은 예산 / 1인 1식 평균을 화면 맨 위에 표시.
+- 주말과 공휴일(2026~2027, 대체공휴일 포함)은 기본 휴무.
 
-## 처음 설정 순서 (관리자)
+## 설치 (처음 한 번)
 
-1. 서버를 `ADMIN_LOGIN_ID`, `ADMIN_PASSWORD` 환경변수와 함께 처음 실행하면 관리자 계정이 만들어집니다.
-2. 관리자 > 설정에서 **초대 코드**를 정하고 직원들에게만 알려 줍니다. (비워두면 가입이 막힙니다.)
-3. 직원들이 초대 코드로 가입하면 관리자 > 직원에서 승인합니다. 휴대폰이 익숙지 않은 분은 "직원 직접 추가"로 만들고 임시 비밀번호를 알려 주세요.
-4. 요리사 계정에 "요리사" 체크, 식사를 안 하는 분이면 "식사" 체크 해제.
-5. 관리자 > 예산에서 이번 달 예산 입력.
+### 1. Supabase
+1. [supabase.com](https://supabase.com/dashboard) → **New project** → 이름 `TC Lunch`, 지역 **Seoul**. (무료 플랜은 프로젝트 2개까지라 테니스와 함께 쓸 수 있어요.)
+2. **SQL Editor** → `supabase/setup.sql` 내용을 전부 붙여넣고, 맨 아래 `'여기에-초대코드'`를 직원용 초대 코드(6자 이상)로 바꾼 뒤 **Run**.
+3. **Authentication → Sign In / Providers → Email** 에서 **Confirm email 끄기**. (아이디로 로그인하는 방식이라 메일 인증을 쓰지 않아요.)
+4. (선택, 휴대폰 푸시) **Edge Functions → Deploy a new function → Via Editor**, 이름 `push-dispatch`, `supabase/functions/push-dispatch/index.ts` 내용 붙여넣고 배포 → 함수 설정에서 **Verify JWT 끄기**.
 
-## 로컬 실행
+### 2. Vercel
+1. [vercel.com](https://vercel.com/new) → `juneycho/tclunch` 저장소 Import.
+2. Environment Variables에 Supabase **Project Settings → API**의 값 두 개 입력:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY` (anon public 키. service_role 키는 절대 넣지 마세요)
+3. Deploy. 이후 `main`에 push하면 자동 배포됩니다.
+
+### 3. 첫 사용
+1. 앱 주소에서 **가입하기** → 초대 코드로 맨 처음 가입한 사람이 **관리자**가 됩니다.
+2. 관리자 → 예산 입력, 요리사 계정에 "요리사" 체크(식사 안 하면 "식사" 체크 해제).
+3. 직원들에게 앱 주소와 초대 코드 공유 → 가입하면 관리자가 승인.
+
+> Supabase 무료 플랜은 1주일 동안 아무도 안 쓰면 일시정지돼요. 매일 쓰면 문제없고, 멈추면 대시보드에서 Restore 누르면 됩니다.
+
+## 개발
 
 ```bash
 npm install
-npm run build
-ADMIN_LOGIN_ID=admin ADMIN_PASSWORD=password1 npm start   # http://localhost:3000
-npm test                                                  # 서버 규칙 테스트
+cp .env.example .env.local   # Supabase URL / anon key 입력
+npm run dev                  # http://localhost:5173
+npm run setup-sql            # migrations → supabase/setup.sql 다시 만들기
+npm test                     # DB 규칙 테스트 (로컬 Postgres 필요: PGHOST/PGPORT/PGUSER)
 ```
 
-개발 모드: `npm run dev` (Vite 5173 + API 3000). 데모 데이터: `DB_PATH=data/demo.db node scripts/demo-seed.js` 후 `DB_PATH=data/demo.db npm start` (아이디 admin / cook / user1~12, 비밀번호 password1).
-
-## 배포 (Fly.io 기준)
-
-데이터는 SQLite 파일 하나(`DB_PATH`)에 저장되므로 **지워지지 않는 디스크(volume)** 가 있는 곳에 배포해야 합니다. 알림 스케줄러가 5분마다 돌기 때문에 서버가 잠들면 안 됩니다.
-
-```bash
-fly launch --no-deploy --copy-config          # 앱 이름이 겹치면 fly.toml의 app 이름을 바꾸세요
-fly volumes create tc_lunch_data --region nrt --size 1
-fly secrets set ADMIN_LOGIN_ID=... ADMIN_PASSWORD=... ADMIN_NAME=... VAPID_SUBJECT=mailto:...
-fly deploy
-```
-
-Fly volume은 매일 자동 스냅샷(5일 보관)이 됩니다. Docker가 되는 다른 서버(Railway, 사내 서버 등)에도 `Dockerfile`로 그대로 올릴 수 있습니다. HTTPS가 있어야 휴대폰 푸시 알림과 앱 설치가 됩니다.
-
-## 보안
-
-- 비밀번호는 bcrypt 해시로 저장, 세션 토큰은 SHA-256 해시로만 DB에 저장, 쿠키는 HttpOnly + SameSite=Lax + (운영) Secure.
-- 로그인 시도 제한(15분에 10회), 가입은 초대 코드 + 관리자 승인, 상태 변경 요청은 커스텀 헤더 필수(CSRF 방지).
-- 비활성화하면 즉시 로그아웃되고 마감 전 신청은 삭제됩니다.
-- 웹 푸시 키(VAPID)는 첫 실행 때 자동 생성되어 DB에 저장됩니다(`VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`로 직접 지정 가능).
+DB 규칙을 바꿀 때는 `supabase/migrations/`에 새 파일을 추가하고 Supabase SQL Editor에서 그 파일만 실행하세요.
 
 ## 구조
 
 ```
-server/   Express API + SQLite (better-sqlite3), 알림 스케줄러
-  app.js      API 라우트와 권한 규칙
-  logic.js    마감/인원/노쇼/예산 계산, 알림 작업
-  db.js       스키마, 기본 설정, 공휴일
-web/      React (Vite) 화면, PWA 매니페스트, 서비스 워커
-test/     규칙 테스트 (node --test)
+supabase/
+  migrations/      테이블·권한(RLS)·규칙 함수·주기 작업(pg_cron)
+  setup.sql        위를 합친 설치용 파일 (자동 생성)
+  functions/push-dispatch/   휴대폰 푸시 발송
+web/src/
+  api.js           화면 → Supabase 호출 연결
+  Calendar / DayPanel / Cook / Admin / My  화면
+test/              DB 규칙 테스트
 ```

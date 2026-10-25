@@ -1,7 +1,7 @@
 -- TC 점심: 주기 작업(pg_cron)과 휴대폰 푸시 발송(pg_net → Edge Function)
 -- 로컬 테스트에서는 이 파일을 건너뛴다.
 
-create extension if not exists pg_cron;
+create extension if not exists pg_cron with schema pg_catalog;
 create extension if not exists pg_net with schema extensions;
 
 -- Edge Function(service_role)만 쓰는 함수들

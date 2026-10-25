@@ -15,15 +15,6 @@ const unwrap = ({ data, error }) => {
 };
 const rpc = async (fn, args) => unwrap(await supabase.rpc(fn, args));
 
-async function fnCall(name, body) {
-  const { data, error } = await supabase.functions.invoke(name, { body });
-  if (error) {
-    const msg = await error.context?.json?.().then((j) => j.error).catch(() => null);
-    fail(msg || error.message);
-  }
-  return data;
-}
-
 const routes = [
   // 인증
   ['POST', /^\/auth\/login$/, async (_, b) => {
@@ -44,7 +35,7 @@ const routes = [
       options: { data: { login_id: b.loginId.toLowerCase(), name: b.name, invite_code: b.inviteCode } },
     }));
     const me = await rpc('get_me');
-    if (me?.status === 'active') return { ok: true, message: '가입 완료! 첫 가입자라 관리자가 됐어요. 로그인해 주세요.' };
+    if (me?.status === 'active') return { ok: true, user: me };
     await supabase.auth.signOut();
     return { ok: true, message: '가입 신청 완료! 관리자가 승인하면 로그인할 수 있어요.' };
   }],
@@ -102,9 +93,8 @@ const routes = [
 
   // 관리자
   ['GET', /^\/admin\/users$/, async () => ({ users: await rpc('admin_users') })],
-  ['POST', /^\/admin\/users$/, (q, b) => fnCall('admin-users', { action: 'create', ...b })],
   ['PATCH', /^\/admin\/users\/([\w-]+)$/, (q, b, [id]) => rpc('admin_update_user', { p_id: id, p: b })],
-  ['POST', /^\/admin\/users\/([\w-]+)\/reset-password$/, (q, b, [id]) => fnCall('admin-users', { action: 'reset', userId: id })],
+  ['POST', /^\/admin\/users\/([\w-]+)\/reset-password$/, async (q, b, [id]) => ({ tempPassword: await rpc('admin_reset_password', { p_id: id }) })],
   ['PUT', /^\/admin\/days\/([\d-]+)\/signup\/([\w-]+)$/, (q, b, [d, u]) =>
     rpc('admin_signup_override', { p_date: d, p_user: u, p_guests: b.guests ?? 0, p_remove: !!b.remove })],
   ['PUT', /^\/admin\/days\/([\d-]+)$/, (q, b, [d]) =>

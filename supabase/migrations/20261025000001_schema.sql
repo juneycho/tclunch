@@ -188,11 +188,17 @@ grant select on all tables in schema public to authenticated;
 -- 관리자 기능(Edge Function)으로 만들 때는 서버만 아는 admin_token이 있어야 한다(바로 사용 가능).
 -- 초대 코드로 맨 처음 가입한 사람은 관리자가 된다. 초대 코드는 배포할 때 GitHub 비밀값으로 넣는다.
 -- BEFORE 트리거에서 검사하고 비밀값을 메타데이터에서 지운 뒤, AFTER 트리거에서 프로필을 만든다.
+-- 설치 SQL의 예시 값을 그대로 두면 가입이 막히도록 빈 값으로 본다
+create or replace function private.invite_code() returns text
+language sql stable security definer set search_path = private as $$
+  select case when value = '여기에-초대코드' then '' else value end from private.secrets where key = 'invite_code';
+$$;
+
 create or replace function private.check_new_user() returns trigger
 language plpgsql security definer set search_path = public, private as $$
 declare
   meta jsonb := coalesce(new.raw_user_meta_data, '{}'::jsonb);
-  code text := (select value from private.secrets where key = 'invite_code');
+  code text := private.invite_code();
   by_admin boolean := coalesce(meta ->> 'admin_token', '') = (select value from private.secrets where key = 'admin_token');
   login text := lower(meta ->> 'login_id');
 begin
@@ -239,7 +245,7 @@ create trigger on_auth_user_created after insert on auth.users
 -- 가입 화면에서 미리 확인 (Supabase Auth는 트리거 오류 메시지를 그대로 보여주지 않아서)
 create or replace function public.precheck_signup(p_invite_code text, p_login_id text) returns text
 language plpgsql stable security definer set search_path = public, private as $$
-declare code text := (select value from private.secrets where key = 'invite_code');
+declare code text := private.invite_code();
 begin
   if code = '' or coalesce(p_invite_code, '') <> code then return '초대 코드가 맞지 않아요. 관리자에게 물어봐 주세요.'; end if;
   if lower(coalesce(p_login_id, '')) !~ '^[a-z0-9._-]{3,30}$' then return '아이디는 영문 소문자/숫자 3~30자로 만들어 주세요.'; end if;
