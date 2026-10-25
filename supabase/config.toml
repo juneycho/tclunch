@@ -1,0 +1,21 @@
+# Supabase CLI 설정. 배포 워크플로가 `supabase config push`로 아래 인증 설정을 올린다.
+project_id = "tclunch"
+
+[auth]
+site_url = "http://localhost:5173"
+enable_signup = true
+minimum_password_length = 8
+
+[auth.email]
+enable_signup = true
+# 아이디 로그인용 가짜 이메일을 쓰므로 메일 인증은 끈다
+enable_confirmations = false
+double_confirm_changes = false
+secure_password_change = false
+
+[functions.admin-users]
+verify_jwt = true
+
+[functions.push-dispatch]
+# pg_cron이 비밀값 헤더로 호출하고, 공개키 조회는 로그인 없이 되므로 JWT 검사는 끈다
+verify_jwt = false

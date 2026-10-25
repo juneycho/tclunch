@@ -11,9 +11,11 @@
     "dev": "concurrently -k \"node --watch server/index.js\" \"vite\"",
     "build": "vite build",
     "start": "node server/index.js",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/app.test.js",
+    "test:db": "node --test test/supabase.test.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^13.0.3",
     "cookie-parser": "^1.4.7",
@@ -24,6 +26,7 @@
   "devDependencies": {
     "@vitejs/plugin-react": "^6.1.2",
     "concurrently": "^10.0.6",
+    "pg": "^8.23.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "supertest": "^7.3.1",
