@@ -32,7 +32,7 @@ const routes = [
     if (!b.password || b.password.length < 8) fail('비밀번호는 8자 이상이어야 해요.');
     unwrap(await supabase.auth.signUp({
       email: toEmail(b.loginId), password: b.password,
-      options: { data: { login_id: b.loginId.toLowerCase(), name: b.name, invite_code: b.inviteCode } },
+      options: { data: { app: 'tc-lunch', login_id: b.loginId.toLowerCase(), name: b.name, invite_code: b.inviteCode } },
     }));
     const me = await rpc('get_me');
     if (me?.status === 'active') return { ok: true, user: me };

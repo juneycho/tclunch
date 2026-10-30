@@ -14,7 +14,9 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const sb = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
+const sb = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
+  auth: { persistSession: false }, db: { schema: 'lunch' },
+});
 const secret = async (k: string) => (await sb.rpc('svc_get_secret', { k })).data as string | null;
 const setSecret = (k: string, v: string) => sb.rpc('svc_set_secret', { k, v });
 

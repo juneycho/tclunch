@@ -7,7 +7,10 @@ const dir = path.resolve(import.meta.dirname, '../supabase/migrations');
 const parts = fs.readdirSync(dir).filter((f) => f.endsWith('.sql')).sort()
   .map((f) => `-- ===== ${f} =====\n${fs.readFileSync(path.join(dir, f), 'utf8')}`);
 const header = `-- TC 점심 설치 SQL (자동 생성: npm run setup-sql, 직접 고치지 말고 migrations를 고치세요)
--- 새 Supabase 프로젝트의 SQL Editor에 전체를 붙여넣고 Run 하세요. 한 번만 실행합니다.
+-- Supabase SQL Editor에 전체를 붙여넣고 Run 하세요. 한 번만 실행합니다.
+-- 기존 프로젝트(예: TC Tennis)에 같이 설치해도 됩니다: 모든 것이 lunch / lunch_private 스키마 안에 만들어지고
+-- public 스키마의 테이블과 권한은 건드리지 않습니다.
+-- 실행 후 Data API 설정의 Exposed schemas 에 lunch 를 추가해야 앱이 접속됩니다.
 -- 실행 전에 맨 아래 초대 코드를 원하는 값으로 바꾸세요.
 
 `;

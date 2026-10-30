@@ -21,14 +21,17 @@
 ## 설치 (처음 한 번)
 
 ### 1. Supabase
-1. [supabase.com](https://supabase.com/dashboard) → **New project** → 이름 `TC Lunch`, 지역 **Seoul**. (무료 플랜은 프로젝트 2개까지라 테니스와 함께 쓸 수 있어요.)
-2. **SQL Editor** → `supabase/setup.sql` 내용을 전부 붙여넣고, 맨 아래 `'여기에-초대코드'`를 직원용 초대 코드(6자 이상)로 바꾼 뒤 **Run**.
-3. **Authentication → Sign In / Providers → Email** 에서 **Confirm email 끄기**. (아이디로 로그인하는 방식이라 메일 인증을 쓰지 않아요.)
+
+새 프로젝트를 만들어도 되고, **기존 프로젝트(TC Tennis)에 같이 설치해도 됩니다.** 무료 플랜은 활성 프로젝트가 2개까지라 TC Tennis에 같이 넣는 걸 기본으로 합니다. 점심 앱은 전부 `lunch`, `lunch_private` 스키마 안에 만들어지고 테니스 앱이 쓰는 `public` 테이블·권한은 건드리지 않습니다. (테스트로 확인: 설치 후에도 anon 키로 테니스 테이블 읽기/쓰기가 그대로 됨)
+
+1. **SQL Editor** → `supabase/setup.sql` 내용을 전부 붙여넣고, 맨 아래 `'여기에-초대코드'`를 직원용 초대 코드(6자 이상)로 바꾼 뒤 **Run**.
+2. **Project Settings → Data API**(또는 Integrations → Data API → Settings)의 **Exposed schemas**에 `lunch`를 추가하고 저장.
+3. **Authentication → Sign In / Providers → Email**에서 **Confirm email 끄기**. (아이디로 로그인하는 방식이라 메일 인증을 쓰지 않아요. 테니스 앱은 로그인을 쓰지 않아서 영향 없음.)
 4. (선택, 휴대폰 푸시) **Edge Functions → Deploy a new function → Via Editor**, 이름 `push-dispatch`, `supabase/functions/push-dispatch/index.ts` 내용 붙여넣고 배포 → 함수 설정에서 **Verify JWT 끄기**.
 
 ### 2. Vercel
 1. [vercel.com](https://vercel.com/new) → `juneycho/tclunch` 저장소 Import.
-2. Environment Variables에 Supabase **Project Settings → API**의 값 두 개 입력:
+2. Environment Variables에 Supabase **Project Settings → API**의 값 두 개 입력 (TC Tennis에 설치했다면 테니스 앱 Vercel에 넣은 값과 같아요):
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY` (anon public 키. service_role 키는 절대 넣지 마세요)
 3. Deploy. 이후 `main`에 push하면 자동 배포됩니다.
@@ -38,7 +41,7 @@
 2. 관리자 → 예산 입력, 요리사 계정에 "요리사" 체크(식사 안 하면 "식사" 체크 해제).
 3. 직원들에게 앱 주소와 초대 코드 공유 → 가입하면 관리자가 승인.
 
-> Supabase 무료 플랜은 1주일 동안 아무도 안 쓰면 일시정지돼요. 매일 쓰면 문제없고, 멈추면 대시보드에서 Restore 누르면 됩니다.
+> Supabase 무료 플랜은 1주일 동안 아무도 안 쓰면 일시정지돼요. 점심 앱은 매일 쓰니 같은 프로젝트의 테니스 앱도 덩달아 깨어 있게 됩니다.
 
 ## 개발
 
@@ -56,7 +59,7 @@ DB 규칙을 바꿀 때는 `supabase/migrations/`에 새 파일을 추가하고 
 
 ```
 supabase/
-  migrations/      테이블·권한(RLS)·규칙 함수·주기 작업(pg_cron)
+  migrations/      lunch 스키마: 테이블·권한(RLS)·규칙 함수·주기 작업(pg_cron)
   setup.sql        위를 합친 설치용 파일 (자동 생성)
   functions/push-dispatch/   휴대폰 푸시 발송
 web/src/

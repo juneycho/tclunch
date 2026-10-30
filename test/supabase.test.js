@@ -16,6 +16,19 @@ const migrations = fs.readdirSync(path.join(root, 'supabase/migrations')).sort()
 let admin, db, dbName, clock = '2026-11-02T10:00:00+09:00';
 const users = {};
 
+// 같은 프로젝트에 이미 있는 테니스 앱 (anon 키로 public 테이블을 직접 읽고 씀)
+const TENNIS_SQL = `
+  create table public.members (id serial primary key, name text not null unique);
+  create table public.attendance (id serial primary key, member_name text not null, date text not null, present boolean not null default false);
+  alter table public.members enable row level security;
+  alter table public.attendance enable row level security;
+  create policy anon_all_members on public.members for all using (true) with check (true);
+  create policy anon_all_attendance on public.attendance for all using (true) with check (true);
+  grant all on public.members, public.attendance to anon, authenticated;
+  grant usage, select on all sequences in schema public to anon, authenticated;
+  grant usage on schema public to anon, authenticated;
+`;
+
 before(async () => {
   admin = new pg.Client({ database: 'postgres' });
   await admin.connect();
@@ -34,9 +47,11 @@ beforeEach(async () => {
       create role anon nologin; create role authenticated nologin; create role service_role nologin bypassrls;
     end if; end $$;`);
   await db.query(read('test/sql/supabase-stub.sql').replace(/create role[^;]+;/g, ''));
+  await db.query(TENNIS_SQL);
   for (const m of migrations) await db.query(m);
+  await db.query('set search_path = lunch, public');
   clock = '2026-11-02T10:00:00+09:00';
-  await db.query("update private.secrets set value = 'tc-2026' where key = 'invite_code'");
+  await db.query("update lunch_private.secrets set value = 'tc-2026' where key = 'invite_code'");
   users.admin = await signUp('admin', '관리자');                 // 첫 가입자 = 관리자
   users.kim = await signUp('kim', '김철수', { admin: true });
   users.lee = await signUp('lee', '이영희', { admin: true });
@@ -44,8 +59,8 @@ beforeEach(async () => {
 });
 
 async function signUp(login, name, { admin: byAdmin, invite = 'tc-2026', ...extra } = {}) {
-  const token = byAdmin ? (await db.query("select value from private.secrets where key = 'admin_token'")).rows[0].value : undefined;
-  const meta = { login_id: login, name, invite_code: invite, admin_token: token, ...extra };
+  const token = byAdmin ? (await db.query("select value from lunch_private.secrets where key = 'admin_token'")).rows[0].value : undefined;
+  const meta = { app: 'tc-lunch', login_id: login, name, invite_code: invite, admin_token: token, ...extra };
   const r = await db.query('insert into auth.users (email, raw_user_meta_data) values ($1, $2) returning id', [`${login}@x`, meta]);
   return r.rows[0].id;
 }
@@ -53,7 +68,7 @@ async function signUp(login, name, { admin: byAdmin, invite = 'tc-2026', ...extr
 // 로그인한 사용자로 RPC 호출 (PostgREST가 하는 것처럼 role과 jwt sub를 설정)
 async function rpc(who, fn, args = {}) {
   const keys = Object.keys(args);
-  const sql = `select public.${fn}(${keys.map((k, i) => `${k} => $${i + 1}`).join(', ')}) as r`;
+  const sql = `select lunch.${fn}(${keys.map((k, i) => `${k} => $${i + 1}`).join(', ')}) as r`;
   await db.query('begin');
   try {
     await db.query(`select set_config('request.jwt.claim.sub', $1, true), set_config('app.now', $2, true)`, [who ? users[who] : '', clock]);
@@ -73,7 +88,7 @@ async function asUser(who, sql) {
 const jobs = async () => {
   await db.query('begin');
   await db.query(`select set_config('app.now', $1, true)`, [clock]);
-  await db.query('select private.run_jobs()');
+  await db.query('select lunch_private.run_jobs()');
   await db.query('commit');
 };
 const titles = async (who) => (await db.query('select title from notifications where user_id = $1', [users[who]])).rows.map((r) => r.title);
@@ -97,7 +112,7 @@ test('다른 사람 대신 신청할 수 없고, 테이블에 직접 쓸 수도 
   await rejects(rpc('kim', 'admin_signup_override', { p_date: '2026-11-09', p_user: users.lee }), /관리자만/);
   await rejects(asUser('kim', `insert into signups (user_id, date) values ('${users.lee}', '2026-11-09')`), /permission denied/);
   await rejects(asUser('kim', `update profiles set is_admin = true`), /permission denied/);
-  await rejects(asUser('kim', `select * from private.secrets`), /permission denied/);
+  await rejects(asUser('kim', `select * from lunch_private.secrets`), /permission denied/);
   await rejects(rpc('kim', 'set_menu', { p_date: '2026-11-09', p_title: 'x' }), /요리사나 관리자/);
 });
 
@@ -187,7 +202,7 @@ test('전출(비활성화) 시 데이터 차단, 마감 전 신청 삭제', asyn
 test('로그인 안 한 사용자(anon)는 아무것도 못 함', async () => {
   await db.query('begin');
   await db.query('set local role anon');
-  await rejects(db.query("select public.get_calendar('2026-11')"), /permission denied/);
+  await rejects(db.query("select lunch.get_calendar('2026-11')"), /permission denied/);
   await db.query('rollback');
 });
 
@@ -204,10 +219,23 @@ test('관리자 비밀번호 초기화', async () => {
 test('가입 전 확인(precheck)은 로그인 없이 가능, 비밀값은 메타데이터에 남지 않음', async () => {
   await db.query('begin');
   await db.query('set local role anon');
-  const r = await db.query("select public.precheck_signup('tc-2026', 'kim') v, public.precheck_signup('nope', 'park') w, public.precheck_signup('tc-2026', 'park') x");
+  const r = await db.query("select lunch.precheck_signup('tc-2026', 'kim') v, lunch.precheck_signup('nope', 'park') w, lunch.precheck_signup('tc-2026', 'park') x");
   await db.query('rollback');
   assert.deepEqual(r.rows[0], { v: '이미 있는 아이디예요.', w: '초대 코드가 맞지 않아요. 관리자에게 물어봐 주세요.', x: null });
   const meta = (await db.query('select raw_user_meta_data m from auth.users where id = $1', [users.kim])).rows[0].m;
   assert.equal(meta.admin_token, undefined);
   assert.equal(meta.invite_code, undefined);
+});
+
+test('같은 프로젝트의 테니스 앱은 그대로 동작 (public 테이블, 다른 앱 가입)', async () => {
+  await db.query('begin');
+  await db.query('set local role anon');
+  await db.query("insert into public.members (name) values ('홍길동')");
+  await db.query("insert into public.attendance (member_name, date, present) values ('홍길동', '2026-10-30', true)");
+  const r = await db.query('select count(*)::int c from public.attendance');
+  await db.query('rollback');
+  assert.equal(r.rows[0].c, 1);
+  // 점심 앱 표시가 없는 가입은 막지도, 점심 직원으로 만들지도 않는다
+  const other = (await db.query("insert into auth.users (email, raw_user_meta_data) values ('x@y', '{}') returning id")).rows[0].id;
+  assert.equal((await db.query('select count(*)::int c from lunch.profiles where id = $1', [other])).rows[0].c, 0);
 });
