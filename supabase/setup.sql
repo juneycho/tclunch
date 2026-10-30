@@ -1003,7 +1003,8 @@ end;
 $$;
 
 -- 로그인 화면: 이 이름으로 이미 들어온 적이 있으면 그 계정의 아이디를 알려준다 (없으면 새로 만든다)
-create or replace function lunch.login_lookup(p_name text) returns text
+drop function if exists lunch.login_lookup(text);
+create function lunch.login_lookup(p_name text) returns text
 language sql stable security definer set search_path = lunch as $$
   select login_id from profiles where lower(name) = lower(trim(p_name)) order by created_at limit 1;
 $$;
