@@ -13,6 +13,8 @@ create table lunch_private.secrets (
   key text primary key,
   value text not null
 );
+-- 밖에서는 아예 접근할 수 없는 스키마지만, 대시보드 경고가 뜨지 않도록 RLS도 켜 둔다 (정책 없음 = 소유자 함수만 접근)
+alter table lunch_private.secrets enable row level security;
 insert into lunch_private.secrets (key, value) values
   ('invite_code', ''),
   ('admin_token', encode(extensions.gen_random_bytes(24), 'hex')),
