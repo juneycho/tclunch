@@ -52,10 +52,12 @@ export default function My({ user, summary, onLogout, onRead }) {
           </ul>
         </section>
       )}
-      <details className="card">
-        <summary>비밀번호 변경</summary>
-        <ChangePassword />
-      </details>
+      {user.isAdmin && (
+        <details className="card">
+          <summary>관리자 비밀번호 변경</summary>
+          <ChangePassword />
+        </details>
+      )}
       <button className="link" onClick={() => api('/auth/logout', { method: 'POST' }).then(onLogout)}>로그아웃 ({user.name})</button>
     </div>
   );

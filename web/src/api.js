@@ -8,8 +8,10 @@ const AUTH_ERRORS = {
   'User already registered': '이미 있는 아이디예요.',
 };
 
-// Supabase는 비밀번호 최소 6자라서, 4~5자리 숫자는 뒤에 고정 문자를 붙여 저장한다 (가입·로그인·변경 모두 같은 규칙)
+// 관리자 비밀번호: Supabase는 최소 6자라서, 4~5자리 숫자는 뒤에 고정 문자를 붙여 저장한다 (가입·로그인·변경 모두 같은 규칙)
 const padPw = (pw) => (pw.length < 6 ? `${pw}#tclunch` : pw);
+// 직원 계정의 비밀번호는 이름(내부 아이디)으로 정해지는 고정 값이다. DB의 lunch_private.set_name_password 와 같아야 한다.
+const namePw = (loginId) => `tclunch:${loginId}`;
 // 이름을 내부 아이디로: UTF-8 바이트를 16진수로 ('김' → 'ueab980')
 const nameToLoginId = (name) => `u${Array.from(new TextEncoder().encode(name), (x) => x.toString(16).padStart(2, '0')).join('')}`;
 
@@ -25,26 +27,24 @@ const routes = [
   ['POST', /^\/auth\/enter$/, async (_, b) => {
     const name = String(b.name || '').trim();
     if (!name || name.length > 10) fail('이름은 1~10자로 써 주세요.');
-    if (!b.password || b.password.length < 4) fail('비밀번호는 4자리 이상이에요.');
-    const password = padPw(b.password);
-    const loginId = await rpc('login_lookup', { p_name: name });
-    if (loginId) {
-      const r = await supabase.auth.signInWithPassword({ email: toEmail(loginId), password });
-      if (r.error) {
-        fail(r.error.message === 'Invalid login credentials'
-          ? `비밀번호가 틀렸어요. 처음 오셨는데 같은 이름이 이미 있다면 '${name}2'처럼 구분해서 써 주세요.`
-          : r.error.message);
-      }
+    const found = await rpc('login_lookup', { p_name: name });
+    if (found?.admin) {
+      if (!b.password) return { needPassword: true };
+      const r = await supabase.auth.signInWithPassword({ email: toEmail(found.loginId), password: padPw(b.password) });
+      if (r.error) fail(r.error.message === 'Invalid login credentials' ? '관리자 비밀번호가 틀렸어요.' : r.error.message);
+    } else if (found) {
+      unwrap(await supabase.auth.signInWithPassword({ email: toEmail(found.loginId), password: namePw(found.loginId) }));
     } else {
+      const loginId = nameToLoginId(name);
       unwrap(await supabase.auth.signUp({
-        email: toEmail(nameToLoginId(name)), password,
-        options: { data: { app: 'tc-lunch', login_id: nameToLoginId(name), name } },
+        email: toEmail(loginId), password: namePw(loginId),
+        options: { data: { app: 'tc-lunch', login_id: loginId, name } },
       }));
     }
     const user = await rpc('get_me');
     if (!user || user.status !== 'active') {
       await supabase.auth.signOut();
-      fail('사용할 수 없는 계정이에요. 관리자에게 물어봐 주세요.', 403);
+      fail('사용할 수 없는 이름이에요. 관리자에게 물어봐 주세요.', 403);
     }
     return { user };
   }],

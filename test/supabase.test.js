@@ -202,22 +202,27 @@ test('로그인 안 한 사용자(anon)는 아무것도 못 함', async () => {
   await db.query('rollback');
 });
 
-test('관리자 비밀번호 초기화', async () => {
-  await db.query("update auth.users set encrypted_password = 'old' where id = $1", [users.kim]);
+test('관리자 비밀번호 초기화 (관리자 계정만)', async () => {
+  await rejects(rpc('admin', 'admin_reset_password', { p_id: users.kim }), /관리자 계정만/);
+  await rpc('admin', 'admin_update_user', { p_id: users.kim, p: { isAdmin: true } });
   await rejects(rpc('lee', 'admin_reset_password', { p_id: users.kim }), /관리자만/);
   const pw = await rpc('admin', 'admin_reset_password', { p_id: users.kim });
   assert.match(pw, /^[a-z2-9]{10}$/);
-  const r = (await db.query('select encrypted_password = extensions.crypt($2, encrypted_password) ok from auth.users where id = $1', [users.kim, pw])).rows[0];
-  assert.equal(r.ok, true);
+  const ok = async (p) => (await db.query('select encrypted_password = extensions.crypt($2, encrypted_password) ok from auth.users where id = $1', [users.kim, p])).rows[0].ok;
+  assert.equal(await ok(pw), true);
   assert.equal((await db.query('select must_change_pw from profiles where id = $1', [users.kim])).rows[0].must_change_pw, true);
+  // 관리자에서 빠지면 이름만으로 (고정 비밀번호) 다시 들어올 수 있다
+  await rpc('admin', 'admin_update_user', { p_id: users.kim, p: { isAdmin: false } });
+  assert.equal(await ok('tclunch:kim'), true);
+  assert.equal((await db.query('select must_change_pw from profiles where id = $1', [users.kim])).rows[0].must_change_pw, false);
 });
 
 test('로그인 화면의 이름 찾기는 로그인 없이 가능, 비밀값은 메타데이터에 남지 않음', async () => {
   await db.query('begin');
   await db.query('set local role anon');
-  const r = await db.query("select lunch.login_lookup(' 김철수 ') v, lunch.login_lookup('없는사람') w");
+  const r = await db.query("select lunch.login_lookup(' 김철수 ') v, lunch.login_lookup('관리자') a, lunch.login_lookup('없는사람') w");
   await db.query('rollback');
-  assert.deepEqual(r.rows[0], { v: 'kim', w: null });
+  assert.deepEqual(r.rows[0], { v: { loginId: 'kim', admin: false }, a: { loginId: 'admin', admin: true }, w: null });
   const meta = (await db.query('select raw_user_meta_data m from auth.users where id = $1', [users.kim])).rows[0].m;
   assert.equal(meta.admin_token, undefined);
   assert.equal(meta.invite_code, undefined);

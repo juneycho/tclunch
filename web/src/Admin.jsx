@@ -28,7 +28,8 @@ function Users({ me }) {
   const patch = (u, body) => api(`/admin/users/${u.id}`, { method: 'PATCH', body }).then(load).catch((e) => setMsg({ ok: false, text: e.message }));
   async function reset(u) {
     if (!window.confirm(`${u.name}님 비밀번호를 초기화할까요?`)) return;
-    const r = await api(`/admin/users/${u.id}/reset-password`, { method: 'POST' });
+    const r = await api(`/admin/users/${u.id}/reset-password`, { method: 'POST' }).catch((e) => { setMsg({ ok: false, text: e.message }); return null; });
+    if (!r) return;
     setMsg({ ok: true, text: `${u.name}님 임시 비밀번호: ${r.tempPassword} (본인에게 직접 전달해 주세요. 첫 로그인 때 바꾸게 돼요.)` });
   }
 
@@ -69,14 +70,14 @@ function Users({ me }) {
                   <option value="active">재직</option><option value="inactive">비활성</option>
                 </select>
               </span>
-              <span><button className="link small" onClick={() => reset(u)}>비번<br />초기화</button></span>
+              <span>{u.isAdmin && u.id !== me.id ? <button className="link small" onClick={() => reset(u)}>비번<br />초기화</button> : null}</span>
             </div>
           ))}
         </div>
       </section>
       <section className="card">
         <h3>새 직원 등록</h3>
-        <p className="small muted">새로 오신 분께 앱 주소만 알려 주세요. 이름과 비밀번호를 쓰면 바로 등록돼요. 비밀번호를 잊으면 "비번 초기화"로 임시 비밀번호를 알려 주면 돼요. 잘못 만든 계정은 "비활성"으로 바꾸면 돼요.</p>
+        <p className="small muted">새로 오신 분께 앱 주소만 알려 주세요. 이름만 쓰면 바로 등록돼요. 잘못 만든 이름은 "비활성"으로 바꾸면 돼요. 관리자만 비밀번호로 들어와요. 다른 사람을 관리자로 지정했다면 "비번 초기화"로 임시 비밀번호를 만들어 알려 주세요.</p>
       </section>
     </>
   );
