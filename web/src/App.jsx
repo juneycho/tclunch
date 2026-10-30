@@ -25,8 +25,8 @@ export default function App() {
     return (
       <div className="page narrow pad">
         <h1>비밀번호 변경</h1>
-        <p className="muted">관리자가 만든 임시 비밀번호예요. 본인만 아는 비밀번호로 바꿔 주세요.</p>
-        <ChangePassword onDone={() => setUser({ ...user, mustChangePw: false })} />
+        <p className="muted">관리자 계정은 비밀번호로 들어와요. 본인만 아는 비밀번호를 정해 주세요. 임시 비밀번호를 받았다면 그걸 현재 비밀번호에 써 주세요.</p>
+        <ChangePassword first onDone={() => setUser({ ...user, mustChangePw: false })} />
       </div>
     );
   }

@@ -58,7 +58,10 @@ const routes = [
   }],
   ['POST', /^\/me\/password$/, async (_, b) => {
     const { data } = await supabase.auth.getUser();
-    const login = await supabase.auth.signInWithPassword({ email: data.user.email, password: padPw(b.current || '') });
+    // 현재 비밀번호를 비워 두면 이름으로 정해진 비밀번호로 확인한다 (막 관리자가 된 첫 사용자)
+    const me = await rpc('get_me');
+    const current = b.current ? padPw(b.current) : namePw(me.loginId);
+    const login = await supabase.auth.signInWithPassword({ email: data.user.email, password: current });
     if (login.error) fail('현재 비밀번호가 틀렸어요.');
     if (!b.next || b.next.length < 4) fail('새 비밀번호는 4자리 이상이에요.');
     unwrap(await supabase.auth.updateUser({ password: padPw(b.next) }));

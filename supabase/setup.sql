@@ -996,7 +996,7 @@ begin
     first_user,                                      -- 맨 처음 들어온 사람이 관리자
     by_admin and coalesce((meta ->> 'is_cook')::boolean, false),
     case when by_admin then coalesce((meta ->> 'is_member')::boolean, true) else true end,
-    by_admin
+    by_admin or first_user                           -- 첫 관리자는 들어오자마자 비밀번호를 정한다
   );
   return new;
 end;

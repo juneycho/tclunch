@@ -63,7 +63,7 @@ export default function My({ user, summary, onLogout, onRead }) {
   );
 }
 
-export function ChangePassword({ onDone }) {
+export function ChangePassword({ onDone, first = false }) {
   const [f, setF] = useState({ current: '', next: '', next2: '' });
   const [msg, setMsg] = useState(null);
   async function submit(e) {
@@ -79,7 +79,7 @@ export function ChangePassword({ onDone }) {
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   return (
     <form className="form" onSubmit={submit}>
-      <label>현재 비밀번호<input type="password" value={f.current} onChange={set('current')} required autoComplete="current-password" /></label>
+      <label>현재 비밀번호{first ? ' (처음 정하는 거면 비워 두세요)' : ''}<input type="password" value={f.current} onChange={set('current')} required={!first} autoComplete="current-password" /></label>
       <label>새 비밀번호 (숫자 4자리 이상)<input type="password" value={f.next} onChange={set('next')} required minLength={4} inputMode="numeric" autoComplete="new-password" /></label>
       <label>새 비밀번호 확인<input type="password" value={f.next2} onChange={set('next2')} required autoComplete="new-password" /></label>
       {msg && <p className={msg.ok ? 'ok' : 'err'}>{msg.text}</p>}
