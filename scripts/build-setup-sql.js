@@ -17,7 +17,7 @@ const header = `-- TC 점심 설치 SQL (자동 생성: npm run setup-sql, 직�
 const footer = `
 -- ===== 초대 코드 (직원 가입용, 6자 이상) =====
 -- 이 코드로 맨 처음 가입하는 사람이 관리자가 됩니다. 나중에 앱 관리자 > 설정에서 바꿀 수 있어요.
-update private.secrets set value = '여기에-초대코드' where key = 'invite_code';
+update lunch_private.secrets set value = '여기에-초대코드' where key = 'invite_code';
 `;
 fs.writeFileSync(path.resolve(dir, '../setup.sql'), header + parts.join('\n') + footer);
 console.log('supabase/setup.sql 생성');
