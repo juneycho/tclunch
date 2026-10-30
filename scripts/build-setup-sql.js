@@ -11,13 +11,8 @@ const header = `-- TC 점심 설치 SQL (자동 생성: npm run setup-sql, 직�
 -- 기존 프로젝트(예: TC Tennis)에 같이 설치해도 됩니다: 모든 것이 lunch / lunch_private 스키마 안에 만들어지고
 -- public 스키마의 테이블과 권한은 건드리지 않습니다.
 -- 실행 후 Data API 설정의 Exposed schemas 에 lunch 를 추가해야 앱이 접속됩니다.
--- 실행 전에 맨 아래 초대 코드를 원하는 값으로 바꾸세요.
 
 `;
-const footer = `
--- ===== 초대 코드 (직원 가입용, 6자 이상) =====
--- 이 코드로 맨 처음 가입하는 사람이 관리자가 됩니다. 나중에 앱 관리자 > 설정에서 바꿀 수 있어요.
-update lunch_private.secrets set value = '여기에-초대코드' where key = 'invite_code';
-`;
+const footer = '';
 fs.writeFileSync(path.resolve(dir, '../setup.sql'), header + parts.join('\n') + footer);
 console.log('supabase/setup.sql 생성');

@@ -4,9 +4,14 @@ import { supabase, SUPABASE_URL, toEmail } from './supabase.js';
 // 실제 규칙(마감, 본인만 신청, 권한)은 전부 DB 함수(supabase/migrations)에 있다.
 const AUTH_ERRORS = {
   'Invalid login credentials': '아이디 또는 비밀번호가 틀렸어요.',
-  'Database error saving new user': '가입하지 못했어요. 초대 코드와 아이디를 확인해 주세요.',
+  'Database error saving new user': '등록하지 못했어요. 이름이 10자를 넘거나 이미 있는 이름인지 확인해 주세요.',
   'User already registered': '이미 있는 아이디예요.',
 };
+
+// Supabase는 비밀번호 최소 6자라서, 4~5자리 숫자는 뒤에 고정 문자를 붙여 저장한다 (가입·로그인·변경 모두 같은 규칙)
+const padPw = (pw) => (pw.length < 6 ? `${pw}#tclunch` : pw);
+// 이름을 내부 아이디로: UTF-8 바이트를 16진수로 ('김' → 'ueab980')
+const nameToLoginId = (name) => `u${Array.from(new TextEncoder().encode(name), (x) => x.toString(16).padStart(2, '0')).join('')}`;
 
 const fail = (message, status = 400) => { const e = new Error(message); e.status = status; throw e; };
 const unwrap = ({ data, error }) => {
@@ -17,27 +22,31 @@ const rpc = async (fn, args) => unwrap(await supabase.rpc(fn, args));
 
 const routes = [
   // 인증
-  ['POST', /^\/auth\/login$/, async (_, b) => {
-    unwrap(await supabase.auth.signInWithPassword({ email: toEmail(b.loginId), password: b.password }));
+  ['POST', /^\/auth\/enter$/, async (_, b) => {
+    const name = String(b.name || '').trim();
+    if (!name || name.length > 10) fail('이름은 1~10자로 써 주세요.');
+    if (!b.password || b.password.length < 4) fail('비밀번호는 4자리 이상이에요.');
+    const password = padPw(b.password);
+    const loginId = await rpc('login_lookup', { p_name: name });
+    if (loginId) {
+      const r = await supabase.auth.signInWithPassword({ email: toEmail(loginId), password });
+      if (r.error) {
+        fail(r.error.message === 'Invalid login credentials'
+          ? `비밀번호가 틀렸어요. 처음 오셨는데 같은 이름이 이미 있다면 '${name}2'처럼 구분해서 써 주세요.`
+          : r.error.message);
+      }
+    } else {
+      unwrap(await supabase.auth.signUp({
+        email: toEmail(nameToLoginId(name)), password,
+        options: { data: { app: 'tc-lunch', login_id: nameToLoginId(name), name } },
+      }));
+    }
     const user = await rpc('get_me');
     if (!user || user.status !== 'active') {
       await supabase.auth.signOut();
-      fail(user?.status === 'pending' ? '아직 관리자 승인 전이에요.' : '비활성화된 계정이에요.', 403);
+      fail('사용할 수 없는 계정이에요. 관리자에게 물어봐 주세요.', 403);
     }
     return { user };
-  }],
-  ['POST', /^\/auth\/register$/, async (_, b) => {
-    const problem = await rpc('precheck_signup', { p_invite_code: b.inviteCode, p_login_id: b.loginId });
-    if (problem) fail(problem);
-    if (!b.password || b.password.length < 8) fail('비밀번호는 8자 이상이어야 해요.');
-    unwrap(await supabase.auth.signUp({
-      email: toEmail(b.loginId), password: b.password,
-      options: { data: { app: 'tc-lunch', login_id: b.loginId.toLowerCase(), name: b.name, invite_code: b.inviteCode } },
-    }));
-    const me = await rpc('get_me');
-    if (me?.status === 'active') return { ok: true, user: me };
-    await supabase.auth.signOut();
-    return { ok: true, message: '가입 신청 완료! 관리자가 승인하면 로그인할 수 있어요.' };
   }],
   ['POST', /^\/auth\/logout$/, async () => { await supabase.auth.signOut(); return { ok: true }; }],
   ['GET', /^\/me$/, async () => {
@@ -49,10 +58,10 @@ const routes = [
   }],
   ['POST', /^\/me\/password$/, async (_, b) => {
     const { data } = await supabase.auth.getUser();
-    const login = await supabase.auth.signInWithPassword({ email: data.user.email, password: b.current || '' });
+    const login = await supabase.auth.signInWithPassword({ email: data.user.email, password: padPw(b.current || '') });
     if (login.error) fail('현재 비밀번호가 틀렸어요.');
-    if (!b.next || b.next.length < 8) fail('새 비밀번호는 8자 이상이어야 해요.');
-    unwrap(await supabase.auth.updateUser({ password: b.next }));
+    if (!b.next || b.next.length < 4) fail('새 비밀번호는 4자리 이상이에요.');
+    unwrap(await supabase.auth.updateUser({ password: padPw(b.next) }));
     await rpc('clear_must_change_pw');
     return { ok: true };
   }],

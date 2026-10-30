@@ -173,21 +173,17 @@ test('예산: 총예산, 지출, 남은 예산', async () => {
   assert.deepEqual([b.total, b.spent, b.remaining], [1000000, 85000, 915000]);
 });
 
-test('가입: 초대 코드 + 관리자 승인, 첫 가입자만 관리자', async () => {
-  await rejects(signUp('park', '박', { invite: 'wrong' }), /초대 코드/);
-  users.park = await signUp('park', '박민');
+test('가입: 초대 코드·승인 없이 이름으로 바로, 첫 가입자만 관리자, 같은 이름 불가', async () => {
+  users.park = await signUp('park', '박민', { invite: '' });
   const me = (await db.query('select status, is_admin from profiles where id = $1', [users.park])).rows[0];
-  assert.deepEqual(me, { status: 'pending', is_admin: false });
-  await rejects(rpc('park', 'get_calendar'), /승인 전/);
-  assert.ok((await titles('admin')).some((t) => t.includes('박민님이 가입 승인')));
-  await rpc('admin', 'admin_update_user', { p_id: users.park, p: { status: 'active' } });
+  assert.deepEqual(me, { status: 'active', is_admin: false });
   await rpc('park', 'get_calendar');
-  // 관리자가 만든 계정은 바로 사용 가능 + 첫 로그인 때 비번 변경
-  const kim = (await db.query('select status, must_change_pw from profiles where id = $1', [users.kim])).rows[0];
-  assert.deepEqual(kim, { status: 'active', must_change_pw: true });
-  // 초대 코드는 일반 사용자가 볼 수 없음
+  assert.deepEqual((await db.query('select status, is_admin from profiles where id = $1', [users.admin])).rows[0], { status: 'active', is_admin: true });
+  await rejects(signUp('park2', '박민'), /이미 있는 이름/);
+  await rejects(signUp('park3', '열한글자가넘는긴이름이에요'), /1~10자/);
+  // 관리자가 만든 계정은 첫 로그인 때 비번 변경
+  assert.equal((await db.query('select must_change_pw from profiles where id = $1', [users.kim])).rows[0].must_change_pw, true);
   await rejects(rpc('kim', 'admin_get_settings'), /관리자만/);
-  assert.equal((await rpc('admin', 'admin_get_settings')).invite_code, 'tc-2026');
 });
 
 test('전출(비활성화) 시 데이터 차단, 마감 전 신청 삭제', async () => {
@@ -216,12 +212,12 @@ test('관리자 비밀번호 초기화', async () => {
   assert.equal((await db.query('select must_change_pw from profiles where id = $1', [users.kim])).rows[0].must_change_pw, true);
 });
 
-test('가입 전 확인(precheck)은 로그인 없이 가능, 비밀값은 메타데이터에 남지 않음', async () => {
+test('로그인 화면의 이름 찾기는 로그인 없이 가능, 비밀값은 메타데이터에 남지 않음', async () => {
   await db.query('begin');
   await db.query('set local role anon');
-  const r = await db.query("select lunch.precheck_signup('tc-2026', 'kim') v, lunch.precheck_signup('nope', 'park') w, lunch.precheck_signup('tc-2026', 'park') x");
+  const r = await db.query("select lunch.login_lookup(' 김철수 ') v, lunch.login_lookup('없는사람') w");
   await db.query('rollback');
-  assert.deepEqual(r.rows[0], { v: '이미 있는 아이디예요.', w: '초대 코드가 맞지 않아요. 관리자에게 물어봐 주세요.', x: null });
+  assert.deepEqual(r.rows[0], { v: 'kim', w: null });
   const meta = (await db.query('select raw_user_meta_data m from auth.users where id = $1', [users.kim])).rows[0].m;
   assert.equal(meta.admin_token, undefined);
   assert.equal(meta.invite_code, undefined);

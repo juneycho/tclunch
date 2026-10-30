@@ -43,7 +43,7 @@ function Users({ me }) {
           <ul className="list">
             {pending.map((u) => (
               <li key={u.id} className="row between">
-                <span>{u.name} <small className="muted">{u.loginId}</small></span>
+                <span>{u.name}</span>
                 <span className="row gap">
                   <button className="primary" onClick={() => patch(u, { status: 'active' })}>승인</button>
                   <button className="link" onClick={() => patch(u, { status: 'inactive' })}>거절</button>
@@ -60,7 +60,7 @@ function Users({ me }) {
           <div className="tr th"><span>이름</span><span>식사</span><span>요리사</span><span>관리자</span><span>상태</span><span /></div>
           {rest.map((u) => (
             <div key={u.id} className={`tr ${u.status}`}>
-              <span>{u.name}<small className="muted"> {u.loginId}</small></span>
+              <span>{u.name}</span>
               <span><input type="checkbox" checked={u.isMember} onChange={(e) => patch(u, { isMember: e.target.checked })} aria-label="식사 신청 대상" /></span>
               <span><input type="checkbox" checked={u.isCook} onChange={(e) => patch(u, { isCook: e.target.checked })} aria-label="요리사" /></span>
               <span><input type="checkbox" checked={u.isAdmin} disabled={u.id === me.id} onChange={(e) => patch(u, { isAdmin: e.target.checked })} aria-label="관리자" /></span>
@@ -76,7 +76,7 @@ function Users({ me }) {
       </section>
       <section className="card">
         <h3>새 직원 등록</h3>
-        <p className="small muted">새로 오신 분께 앱 주소와 초대 코드(관리자 &gt; 설정)를 알려 주세요. 본인이 아이디를 만들어 가입하면 위에 "가입 승인 대기"로 떠요. 비밀번호를 잊으면 "비번 초기화"로 임시 비밀번호를 알려 주면 돼요.</p>
+        <p className="small muted">새로 오신 분께 앱 주소만 알려 주세요. 이름과 비밀번호를 쓰면 바로 등록돼요. 비밀번호를 잊으면 "비번 초기화"로 임시 비밀번호를 알려 주면 돼요. 잘못 만든 계정은 "비활성"으로 바꾸면 돼요.</p>
       </section>
     </>
   );
@@ -165,7 +165,6 @@ function Settings() {
     e.preventDefault();
     try {
       const body = Object.fromEntries(fields.map(([k]) => [k, Number(s[k])]));
-      body.invite_code = s.invite_code;
       setS(await api('/admin/settings', { method: 'PUT', body }));
       setMsg({ ok: true, text: '저장했어요.' });
     } catch (err) { setMsg({ ok: false, text: err.message }); }
@@ -178,9 +177,6 @@ function Settings() {
           <span className="row gap"><input type="number" value={s[k]} onChange={(e) => setS({ ...s, [k]: e.target.value })} className="short" />{unit}</span>
         </label>
       ))}
-      <label>가입 초대 코드 (직원들에게만 알려 주세요. 비우면 가입 막힘)
-        <input value={s.invite_code} onChange={(e) => setS({ ...s, invite_code: e.target.value })} placeholder="6자 이상" />
-      </label>
       {msg && <p className={msg.ok ? 'ok' : 'err'}>{msg.text}</p>}
       <button className="primary">저장</button>
     </form>

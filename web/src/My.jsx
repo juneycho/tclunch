@@ -56,7 +56,7 @@ export default function My({ user, summary, onLogout, onRead }) {
         <summary>비밀번호 변경</summary>
         <ChangePassword />
       </details>
-      <button className="link" onClick={() => api('/auth/logout', { method: 'POST' }).then(onLogout)}>로그아웃 ({user.loginId})</button>
+      <button className="link" onClick={() => api('/auth/logout', { method: 'POST' }).then(onLogout)}>로그아웃 ({user.name})</button>
     </div>
   );
 }
@@ -78,7 +78,7 @@ export function ChangePassword({ onDone }) {
   return (
     <form className="form" onSubmit={submit}>
       <label>현재 비밀번호<input type="password" value={f.current} onChange={set('current')} required autoComplete="current-password" /></label>
-      <label>새 비밀번호 (8자 이상)<input type="password" value={f.next} onChange={set('next')} required minLength={8} autoComplete="new-password" /></label>
+      <label>새 비밀번호 (숫자 4자리 이상)<input type="password" value={f.next} onChange={set('next')} required minLength={4} inputMode="numeric" autoComplete="new-password" /></label>
       <label>새 비밀번호 확인<input type="password" value={f.next2} onChange={set('next2')} required autoComplete="new-password" /></label>
       {msg && <p className={msg.ok ? 'ok' : 'err'}>{msg.text}</p>}
       <button className="primary">변경</button>

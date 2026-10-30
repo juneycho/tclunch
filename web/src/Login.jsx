@@ -1,30 +1,22 @@
 import React, { useState } from 'react';
 import { api } from './api.js';
 
+// 이름 + 비밀번호 하나로: 처음이면 그 비밀번호로 새로 만들어지고, 다음부터는 같은 비밀번호로 들어온다.
 export default function Login({ onLogin }) {
-  const [mode, setMode] = useState('login');
-  const [f, setF] = useState({ loginId: '', password: '', name: '', inviteCode: '', password2: '' });
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
   const [msg, setMsg] = useState(null);
   const [busy, setBusy] = useState(false);
-  const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
   async function submit(e) {
     e.preventDefault();
     setMsg(null);
     setBusy(true);
     try {
-      if (mode === 'login') {
-        const r = await api('/auth/login', { method: 'POST', body: { loginId: f.loginId, password: f.password } });
-        onLogin(r.user);
-      } else {
-        if (f.password !== f.password2) throw new Error('비밀번호 확인이 달라요.');
-        const r = await api('/auth/register', { method: 'POST', body: f });
-        if (r.user) return onLogin(r.user);   // 첫 가입자(관리자)는 바로 들어간다
-        setMsg({ ok: true, text: r.message });
-        setMode('login');
-      }
+      const r = await api('/auth/enter', { method: 'POST', body: { name, password } });
+      onLogin(r.user);
     } catch (err) {
-      setMsg({ ok: false, text: err.message });
+      setMsg(err.message);
     } finally { setBusy(false); }
   }
 
@@ -36,23 +28,13 @@ export default function Login({ onLogin }) {
         <p className="muted">점심 신청은 식사일 1주일 전에 마감돼요.</p>
       </div>
       <form className="card form" onSubmit={submit}>
-        {mode === 'register' && (
-          <>
-            <label>초대 코드<input value={f.inviteCode} onChange={set('inviteCode')} required autoComplete="off" /></label>
-            <label>이름<input value={f.name} onChange={set('name')} required maxLength={30} placeholder="홍길동" /></label>
-          </>
-        )}
-        <label>아이디<input value={f.loginId} onChange={set('loginId')} required autoCapitalize="none" autoComplete="username" /></label>
-        <label>비밀번호<input type="password" value={f.password} onChange={set('password')} required
-          autoComplete={mode === 'login' ? 'current-password' : 'new-password'} minLength={mode === 'login' ? undefined : 8} /></label>
-        {mode === 'register' && (
-          <label>비밀번호 확인<input type="password" value={f.password2} onChange={set('password2')} required autoComplete="new-password" /></label>
-        )}
-        {msg && <p className={msg.ok ? 'ok' : 'err'}>{msg.text}</p>}
-        <button className="primary" disabled={busy}>{mode === 'login' ? '로그인' : '가입 신청'}</button>
-        <button type="button" className="link" onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setMsg(null); }}>
-          {mode === 'login' ? '처음이세요? 가입하기' : '이미 계정이 있어요'}
-        </button>
+        <label>이름<input value={name} onChange={(e) => setName(e.target.value)} required maxLength={10}
+          placeholder="홍길동" autoComplete="username" /></label>
+        <label>비밀번호 (숫자 4자리 이상)<input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+          required minLength={4} inputMode="numeric" autoComplete="current-password" /></label>
+        <p className="small muted">처음이면 지금 쓴 비밀번호로 바로 등록돼요. 다른 사람이 내 이름으로 신청하지 못하게 하는 용도예요.</p>
+        {msg && <p className="err">{msg}</p>}
+        <button className="primary" disabled={busy}>{busy ? '들어가는 중…' : '들어가기'}</button>
       </form>
     </div>
   );
