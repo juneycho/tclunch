@@ -174,9 +174,9 @@ const D = {
   installTitle: { ko: '앱으로 설치하기', en: 'Install the app', vi: 'Cài ứng dụng' },
   installBtn: { ko: '이 휴대폰에 앱 설치', en: 'Install on this phone', vi: 'Cài vào điện thoại này' },
   installSteps: {
-    ko: '1. 카카오톡에서 다른 브라우저로 열기\n2. 다른 브라우저에서 연 후에 \'설정에서 앱 설치\' 혹은 \'홈 화면에 추가\'\n앱으로 사용하면 마감 알림을 받으실 수 있습니다.',
-    en: '1. In KakaoTalk, open this link in another browser\n2. In that browser, choose "Install app" from the menu or "Add to Home Screen"\nUse it as an app to get deadline notifications.',
-    vi: '1. Trong KakaoTalk, mở liên kết bằng trình duyệt khác\n2. Trong trình duyệt đó, chọn "Cài đặt ứng dụng" trong menu hoặc "Thêm vào màn hình chính"\nDùng như ứng dụng để nhận thông báo hạn đăng ký.',
+    ko: '1. 카카오톡에서 다른 브라우저로 열기\n2. 다른 브라우저에서 연 후에 \'설정에서 앱 설치\' 혹은 \'홈 화면에 추가\'\n아이폰: Safari로 열기 → 아래 공유(□↑) 버튼 → \'홈 화면에 추가\'\n앱으로 사용하면 마감 알림을 받으실 수 있습니다.',
+    en: '1. In KakaoTalk, open this link in another browser\n2. In that browser, choose "Install app" from the menu or "Add to Home Screen"\niPhone: open in Safari → Share (□↑) at the bottom → "Add to Home Screen"\nUse it as an app to get deadline notifications.',
+    vi: '1. Trong KakaoTalk, mở liên kết bằng trình duyệt khác\n2. Trong trình duyệt đó, chọn "Cài đặt ứng dụng" trong menu hoặc "Thêm vào màn hình chính"\niPhone: mở bằng Safari → nút Chia sẻ (□↑) bên dưới → "Thêm vào MH chính"\nDùng như ứng dụng để nhận thông báo hạn đăng ký.',
   },
   openExternal: { ko: '다른 브라우저로 열기', en: 'Open in another browser', vi: 'Mở bằng trình duyệt khác' },
   promptTitle: { ko: '휴대폰 알림을 켤까요?', en: 'Turn on phone notifications?', vi: 'Bật thông báo điện thoại?' },
