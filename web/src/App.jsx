@@ -8,7 +8,7 @@ import History from './History.jsx';
 import My, { ChangePassword } from './My.jsx';
 import Admin from './Admin.jsx';
 import TabBar from './TabBar.jsx';
-import PushPrompt from './PushPrompt.jsx';
+import PushPrompt, { PushBanner } from './PushPrompt.jsx';
 import { refreshPush } from './push.js';
 
 export default function App() {
@@ -64,6 +64,7 @@ function Main() {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 01-3.4 0" />
           </svg>
+          <small>{t('bellLabel')}</small>
           {summary?.unread ? <i className="dot">{summary.unread}</i> : null}
         </button>
         {user.isAdmin && (
@@ -77,6 +78,7 @@ function Main() {
       <div className="stripe"><i /><i /><i /><i /></div>
       <div className="pad">
         <main>
+          {tab === 'calendar' && <PushBanner />}
           {tab === 'calendar' && <Calendar user={user} summary={summary} onChange={refreshSummary} />}
           {tab === 'summary' && <History user={user} />}
           {tab === 'my' && <My user={user} onLogout={() => setUser(null)} onRead={refreshSummary} />}
