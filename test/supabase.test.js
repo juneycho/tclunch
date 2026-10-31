@@ -72,7 +72,7 @@ async function rpc(who, fn, args = {}) {
   await db.query('begin');
   try {
     await db.query(`select set_config('request.jwt.claim.sub', $1, true), set_config('app.now', $2, true)`, [who ? users[who] : '', clock]);
-    await db.query('set local role authenticated');
+    await db.query(`set local role ${who === 'anon' ? 'anon' : 'authenticated'}`);
     const r = await db.query(sql, keys.map((k) => args[k]));
     await db.query('commit');
     return r.rows[0].r;
@@ -191,6 +191,16 @@ test('날짜를 누를 때마다 +1명 (나 → 손님), −1로 줄이고, 내�
   d = await rpc('kim', 'untap_day', { p_date: '2026-11-10' });
   assert.deepEqual([d.mine, d.myGuests], [null, 0]);
   await rejects(rpc('kim', 'tap_day', { p_date: '2026-11-03' }), /마감/);
+});
+
+test('로그인 화면 공지: 누구나 읽고 관리자만 고침, 관리자 이름 바꿔도 로그인 아이디 유지', async () => {
+  assert.equal(await rpc('anon', 'login_notice'), '관리자 아이디: TC');
+  await rejects(rpc('kim', 'admin_save_notice', { p_text: 'x' }), /관리자만/);
+  await rpc('admin', 'admin_save_notice', { p_text: '관리자 아이디: TC / 비밀번호: 1234' });
+  assert.equal(await rpc('anon', 'login_notice'), '관리자 아이디: TC / 비밀번호: 1234');
+  const before = await rpc('anon', 'login_lookup', { p_name: '관리자' });
+  await rpc('admin', 'admin_update_user', { p_id: users.admin, p: { name: 'TC' } });
+  assert.deepEqual(await rpc('anon', 'login_lookup', { p_name: 'tc' }), before);
 });
 
 test('요리사 시트: 날짜별 참석자, 총인원, 1인 VND 150,000 기준 예산 (모두 볼 수 있음)', async () => {
