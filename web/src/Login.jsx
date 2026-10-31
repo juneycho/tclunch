@@ -12,6 +12,8 @@ export default function Login({ onLogin }) {
   const [needPw, setNeedPw] = useState(false);
   const [msg, setMsg] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState('');
+  useEffect(() => { api('/notice').then((r) => setNotice(r.text || '')).catch(() => {}); }, []);
 
   async function submit(e) {
     e.preventDefault();
@@ -42,7 +44,10 @@ export default function Login({ onLogin }) {
         {msg && <p className="err">{msg}</p>}
         <button className="primary" disabled={busy}>{busy ? t('entering') : t('enter')}</button>
       </form>
-      {!isStandalone() && <InstallGuide />}
+      <div className="fineprint">
+        {notice && <p className="pre notice-line">📢 {notice}</p>}
+        {!isStandalone() && <InstallGuide />}
+      </div>
     </div>
   );
 }
@@ -65,10 +70,10 @@ function InstallGuide() {
     setCanInstall(false);
   }
   return (
-    <div className="install card">
+    <div className="install">
       <b>{t('installTitle')}</b>
       {canInstall && <button className="accent" onClick={install}>{t('installBtn')}</button>}
-      <p className="pre small">{t('installSteps')}</p>
+      <p className="pre">{t('installSteps')}</p>
     </div>
   );
 }

@@ -194,9 +194,6 @@ details > summary { cursor: pointer; }
 button.full { width: 100%; padding: 11px; }
 .strong { font-weight: 700; }
 button.link.logout { padding: 0; font-size: .8rem; color: var(--sky); }
-.install { margin-top: 14px; border-color: #bfe8f8; background: var(--blue-soft); }
-.install b { color: var(--navy); }
-.install .pre { color: var(--ink); }
 
 .with-quickbar { padding-bottom: 130px; }
 .hist td.date { white-space: nowrap; font-weight: 600; width: 1%; }
@@ -205,3 +202,9 @@ button.link.logout { padding: 0; font-size: .8rem; color: var(--sky); }
 .chip { display: inline-block; background: var(--soft); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; margin: 2px 4px 2px 0; white-space: nowrap; }
 .chip b { color: var(--navy); }
 .roster li > b { color: var(--navy); }
+.fineprint { margin-top: 14px; font-size: .74rem; line-height: 1.5; color: var(--muted); background: var(--soft); border-radius: 10px; padding: 8px 10px; }
+.fineprint p { margin: 0; }
+.fineprint .notice-line { color: var(--navy); font-weight: 600; margin-bottom: 6px; }
+.fineprint .install b { color: var(--ink); font-weight: 600; }
+.fineprint .install .accent { padding: 8px; margin: 4px 0; font-size: .85rem; }
+.name-btn { padding: 0; color: var(--ink); text-align: left; }

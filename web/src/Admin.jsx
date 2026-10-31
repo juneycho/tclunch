@@ -14,7 +14,7 @@ export default function Admin({ user, onChange }) {
       </nav>
       {sec === 'users' && <Users me={user} />}
       {sec === 'budget' && <Budgets onChange={onChange} />}
-      {sec === 'settings' && <Settings />}
+      {sec === 'settings' && <><Notice /><Settings /></>}
       {sec === 'audit' && <Audit />}
     </div>
   );
@@ -46,7 +46,7 @@ function Users({ me }) {
           <div className="tr th"><span>{t('colName')}</span><span>{t('colEats')}</span><span>{t('colCook')}</span><span>{t('colAdmin')}</span><span>{t('colStatus')}</span><span /></div>
           {rest.map((u) => (
             <div key={u.id} className={`tr ${u.status}`}>
-              <span>{u.name}</span>
+              <span><button className="link name-btn" title={t('rename')} onClick={() => { const n = window.prompt(t('renamePrompt'), u.name); if (n && n.trim() && n.trim() !== u.name) patch(u, { name: n.trim() }); }}>{u.name} ✎</button></span>
               <span><input type="checkbox" checked={u.isMember} onChange={(e) => patch(u, { isMember: e.target.checked })} aria-label={t('colEats')} /></span>
               <span><input type="checkbox" checked={u.isCook} onChange={(e) => patch(u, { isCook: e.target.checked })} aria-label={t('colCook')} /></span>
               <span><input type="checkbox" checked={u.isAdmin} disabled={u.id === me.id} onChange={(e) => patch(u, { isAdmin: e.target.checked })} aria-label={t('colAdmin')} /></span>
@@ -112,6 +112,30 @@ function Budgets({ onChange }) {
         ))}
       </ul>
     </section>
+  );
+}
+
+function Notice() {
+  const t = useT();
+  const [text, setText] = useState(null);
+  const [msg, setMsg] = useState(null);
+  useEffect(() => { api('/notice').then((r) => setText(r.text || '')); }, []);
+  if (text === null) return null;
+  async function save(e) {
+    e.preventDefault();
+    try {
+      await api('/admin/notice', { method: 'PUT', body: { text } });
+      setMsg({ ok: true, text: t('saved') });
+    } catch (err) { setMsg({ ok: false, text: err.message }); }
+  }
+  return (
+    <form className="card form" onSubmit={save}>
+      <h3>{t('noticeTitle')}</h3>
+      <p className="small muted">{t('noticeHint')}</p>
+      <textarea rows={3} maxLength={300} value={text} onChange={(e) => setText(e.target.value)} />
+      {msg && <p className={msg.ok ? 'ok' : 'err'}>{msg.text}</p>}
+      <button className="primary">{t('save')}</button>
+    </form>
   );
 }
 
