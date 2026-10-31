@@ -200,23 +200,27 @@ test('인원 확정되면 요리사 알림, 메뉴 등록 시 신청자 알림',
   assert.ok((await titles('kim')).some((t) => t.includes('비빔밥')));
 });
 
-test('목요일 오전·금요일 오전에 모든 직원에게 다음 주 마감 알림 (하루 한 번)', async () => {
-  await rpc('lee', 'signup_upsert', { p_date: '2026-11-10' });
-  clock = '2026-11-05T08:00:00+07:00';   // 목 8시: 아직
+test('마감 알림: 목 17:40, 금 06:45, 금 15:00 세 번 (모든 직원, 시각마다 한 번)', async () => {
+  const remind = async (who) => (await titles(who)).filter((t) => t.includes('마감돼요'));
+  clock = '2026-11-05T17:35:00+07:00';   // 목 17:35: 아직
   await jobs();
-  assert.equal((await titles('kim')).length, 0);
-  clock = '2026-11-05T09:10:00+07:00';
+  assert.equal((await remind('kim')).length, 0);
+  clock = '2026-11-05T17:41:00+07:00';
   await jobs(); await jobs();
-  assert.deepEqual((await titles('kim')).filter((t) => t.includes('마감돼요')), ['내일 17시, 다음 주 점심 신청이 마감돼요']);
-  assert.ok((await titles('lee')).includes('내일 17시, 다음 주 점심 신청이 마감돼요'));
-  assert.ok(!(await titles('cook')).some((t) => t.includes('마감돼요')));
-  clock = '2026-11-06T09:30:00+07:00';
+  assert.deepEqual(await remind('kim'), ['내일 17시, 다음 주 점심 신청이 마감돼요']);
+  assert.equal((await remind('lee')).length, 1);
+  assert.equal((await remind('cook')).length, 0);
+  clock = '2026-11-06T06:45:00+07:00';
   await jobs();
-  assert.ok((await titles('kim')).includes('오늘 17시, 다음 주 점심 신청이 마감돼요'));
-  clock = '2026-11-06T17:30:00+07:00';   // 마감 뒤에는 새로 안 보냄
-  await db.query("delete from notifications where title like '오늘%'");
+  clock = '2026-11-06T09:00:00+07:00';   // 금 9시: 새 알림 없음
   await jobs();
-  assert.ok(!(await titles('kim')).some((t) => t.startsWith('오늘')));
+  assert.equal((await remind('kim')).length, 2);
+  clock = '2026-11-06T15:02:00+07:00';
+  await jobs(); await jobs();
+  assert.deepEqual((await remind('kim')).filter((t) => t.startsWith('오늘')).length, 2);
+  clock = '2026-11-06T17:30:00+07:00';   // 마감 뒤에는 없음
+  await jobs();
+  assert.equal((await remind('kim')).length, 3);
 });
 
 test('휴대폰 알림 시험 보내기', async () => {
