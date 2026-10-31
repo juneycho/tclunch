@@ -212,6 +212,20 @@ test('이번 한 번: 11/2 주 마감을 10/31(토) 22:00로 연장', async () =
   assert.equal((await rpc('kim', 'get_day', { p_date: '2026-11-10' })).deadlineAt, '2026-11-06 17:00');   // 그다음 주는 원래대로
 });
 
+test('관리자는 그날 한 사람의 신청을 통째로 삭제, 다른 사람은 못 함', async () => {
+  for (let i = 0; i < 3; i++) await rpc('kim', 'tap_day', { p_date: '2026-11-10' });
+  await rpc('lee', 'tap_day', { p_date: '2026-11-10' });
+  await rejects(rpc('lee', 'admin_remove_person', { p_date: '2026-11-10', p_user: users.kim }), /관리자만/);
+  await rejects(rpc('lee', 'untap_day', { p_date: '2026-11-10' }).then(() => rpc('lee', 'untap_day', { p_date: '2026-11-10' })).then(async () => {
+    if ((await rpc('kim', 'get_day', { p_date: '2026-11-10' })).total !== 3) throw new Error('changed others');
+    throw new Error('ok');
+  }), /ok/);   // 내 −는 남의 인원을 건드리지 않음
+  await rpc('admin', 'admin_remove_person', { p_date: '2026-11-10', p_user: users.kim });
+  assert.equal((await rpc('lee', 'get_day', { p_date: '2026-11-10' })).total, 0);
+  const h = await rpc('admin', 'history_list', { p_month: '2026-11' });
+  assert.deepEqual(h.days, []);
+});
+
 test('요리사 시트: 날짜별 참석자, 총인원, 1인 VND 150,000 기준 예산 (모두 볼 수 있음)', async () => {
   await rpc('kim', 'signup_upsert', { p_date: '2026-11-09' });
   await rpc('lee', 'signup_upsert', { p_date: '2026-11-09' });
