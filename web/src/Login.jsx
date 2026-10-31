@@ -45,7 +45,7 @@ export default function Login({ onLogin }) {
         <button className="primary" disabled={busy}>{busy ? t('entering') : t('enter')}</button>
       </form>
       <div className="fineprint">
-        {notice && <p className="pre notice-line">📢 {notice}</p>}
+        {notice && <p className="pre notice-line">{notice}</p>}
         {!isStandalone() && <InstallGuide />}
       </div>
     </div>

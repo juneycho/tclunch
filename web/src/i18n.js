@@ -13,11 +13,7 @@ const D = {
   namePlaceholder: { ko: '홍길동', en: 'Your name', vi: 'Nguyễn Văn A' },
   enter: { ko: '들어가기', en: 'Enter', vi: 'Vào' },
   entering: { ko: '들어가는 중…', en: 'Entering…', vi: 'Đang vào…' },
-  loginHint: {
-    ko: "처음이면 이름만 쓰면 바로 등록돼요. 같은 이름이 있으면 '김민수2'처럼 구분해 주세요.",
-    en: "First time? Just type your name and you're registered. If someone has the same name, add a number like 'Minh 2'.",
-    vi: "Lần đầu? Chỉ cần nhập tên là được đăng ký. Nếu trùng tên, hãy thêm số, ví dụ 'Minh 2'.",
-  },
+  loginHint: { ko: '이름만 쓰고 사용하시면 됩니다.', en: 'Just enter your name to use the app.', vi: 'Chỉ cần nhập tên là dùng được.' },
   adminPassword: { ko: '관리자 비밀번호', en: 'Admin password', vi: 'Mật khẩu quản trị' },
   adminPwHint: { ko: '관리자 계정이라 비밀번호가 필요해요.', en: 'This is an admin account, so a password is required.', vi: 'Đây là tài khoản quản trị nên cần mật khẩu.' },
   hello: { ko: '{name}님', en: 'Hi, {name}', vi: 'Chào {name}' },
@@ -174,7 +170,7 @@ const D = {
   pushReconnect: { ko: '다시 연결', en: 'Reconnect', vi: 'Kết nối lại' },
   pushDone: { ko: '이 기기에서 알림을 받아요.', en: 'This device will get notifications.', vi: 'Thiết bị này sẽ nhận thông báo.' },
   pushFail: { ko: '알림 설정 실패: {e}', en: 'Could not turn on notifications: {e}', vi: 'Không bật được thông báo: {e}' },
-  installTitle: { ko: '📲 앱으로 설치하기', en: '📲 Install the app', vi: '📲 Cài ứng dụng' },
+  installTitle: { ko: '앱으로 설치하기', en: 'Install the app', vi: 'Cài ứng dụng' },
   installBtn: { ko: '이 휴대폰에 앱 설치', en: 'Install on this phone', vi: 'Cài vào điện thoại này' },
   installSteps: {
     ko: '안드로이드(크롬): 오른쪽 위 ⋮ → "앱 설치" 또는 "홈 화면에 추가"\n아이폰(Safari): 아래쪽 공유(□↑) → "홈 화면에 추가"\n설치 후에는 홈 화면의 아이콘으로 여세요. 그래야 알림도 와요.',
