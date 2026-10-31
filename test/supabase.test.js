@@ -203,6 +203,15 @@ test('로그인 화면 공지: 누구나 읽고 관리자만 고침, 관리자 �
   assert.deepEqual(await rpc('anon', 'login_lookup', { p_name: 'tc' }), before);
 });
 
+test('이번 한 번: 11/2 주 마감을 10/31(토) 22:00로 연장', async () => {
+  clock = '2026-10-31T21:50:00+07:00';
+  const d = await rpc('kim', 'tap_day', { p_date: '2026-11-03' });
+  assert.deepEqual([d.phase, d.deadlineAt], ['open', '2026-10-31 22:00']);
+  clock = '2026-10-31T22:00:00+07:00';
+  await rejects(rpc('kim', 'tap_day', { p_date: '2026-11-03' }), /마감/);
+  assert.equal((await rpc('kim', 'get_day', { p_date: '2026-11-10' })).deadlineAt, '2026-11-06 17:00');   // 그다음 주는 원래대로
+});
+
 test('요리사 시트: 날짜별 참석자, 총인원, 1인 VND 150,000 기준 예산 (모두 볼 수 있음)', async () => {
   await rpc('kim', 'signup_upsert', { p_date: '2026-11-09' });
   await rpc('lee', 'signup_upsert', { p_date: '2026-11-09' });
