@@ -215,3 +215,5 @@ button.link.logout { padding: 0; font-size: .8rem; color: var(--sky); }
 .sw.past { background: #d9dde5; }
 .chip-x { border: none; background: none; color: var(--red); padding: 0 0 0 4px; font-size: .8rem; }
 .tr { grid-template-columns: minmax(0, 1fr) repeat(2, 34px) 74px 52px; }
+.install.kakao { font-size: .85rem; color: var(--ink); }
+.accent-btn { display: block; text-align: center; background: var(--sky); color: #fff; border-radius: 10px; padding: 9px; margin: 6px 0; font-weight: 600; text-decoration: none; font-size: .9rem; }

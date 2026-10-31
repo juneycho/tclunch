@@ -69,9 +69,12 @@ function InstallGuide() {
     window.tcInstallPrompt = null;
     setCanInstall(false);
   }
+  // 카카오톡 안 브라우저에서는 설치·알림이 안 되므로 바깥 브라우저로 여는 버튼을 크게 보여 준다
+  const inKakao = /KAKAOTALK/i.test(navigator.userAgent);
   return (
-    <div className="install">
+    <div className={`install${inKakao ? ' kakao' : ''}`}>
       <b>{t('installTitle')}</b>
+      {inKakao && <a className="accent-btn" href={`kakaotalk://web/openExternal?url=${encodeURIComponent(location.href)}`}>{t('openExternal')}</a>}
       {canInstall && <button className="accent" onClick={install}>{t('installBtn')}</button>}
       <p className="pre">{t('installSteps')}</p>
     </div>
