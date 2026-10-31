@@ -57,7 +57,7 @@ export default function History({ user }) {
           <section className="card">
             <h3>{t('personTotals')}</h3>
             <ul className="list">
-              {data.totals.map((p) => <li key={p.name} className="row between"><span>{p.name}</span><b>{t('peopleLong', { n: p.count })}</b></li>)}
+              {data.totals.map((p) => <li key={p.name} className="row between"><span>{p.name}</span><b>{t('mealTimes', { n: p.count })}</b></li>)}
             </ul>
           </section>
         </>

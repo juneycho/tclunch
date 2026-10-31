@@ -36,6 +36,7 @@ const D = {
   weekdays: { ko: '일,월,화,수,목,금,토', en: 'Sun,Mon,Tue,Wed,Thu,Fri,Sat', vi: 'CN,T2,T3,T4,T5,T6,T7' },
   people: { ko: '{n}명', en: '{n}', vi: '{n}' },
   peopleLong: { ko: '{n}명', en: '{n} people', vi: '{n} người' },
+  mealTimes: { ko: '{n}회', en: '{n} times', vi: '{n} lần' },
   legendOpen: { ko: '신청 가능', en: 'Open', vi: 'Đang mở' },
   legendConfirmed: { ko: '인원 확정', en: 'Confirmed', vi: 'Đã chốt' },
   legendMine: { ko: '내가 신청', en: 'Signed up', vi: 'Tôi đã đăng ký' },
