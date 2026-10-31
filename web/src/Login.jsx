@@ -32,7 +32,7 @@ export default function Login({ onLogin }) {
     <div className="page narrow pad">
       <div className="row login-lang"><LangPicker /></div>
       <Brand />
-      <div className="deadline-note">⏰ {t('deadlineNotice')}</div>
+      <div className="deadline-note">{t('deadlineNotice')}</div>
       <form className="card form" onSubmit={submit}>
         <label>{t('name')}<input value={name} onChange={(e) => { setName(e.target.value); setNeedPw(false); }} required maxLength={10}
           placeholder={t('namePlaceholder')} autoComplete="username" autoFocus /></label>

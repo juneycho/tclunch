@@ -48,7 +48,7 @@ export default function Calendar({ user, summary, onChange }) {
 
   return (
     <div className={q ? 'with-quickbar' : ''}>
-      <div className="deadline-note">⏰ {t('deadlineNotice')}</div>
+      <div className="deadline-note">{t('deadlineNotice')}</div>
       <p className="small muted center tap-hint">👆 {t('tapHint')}</p>
       <div className="monthbar">
         <button onClick={() => load(shiftMonth(month, -1))} aria-label={t('prevMonth')}>‹</button>

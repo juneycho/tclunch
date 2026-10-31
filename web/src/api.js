@@ -18,8 +18,9 @@ const vnTime = (ts) => new Date(ts).toLocaleString('sv-SE', { timeZone: 'Asia/Ho
 const padPw = (pw) => (pw.length < 6 ? `${pw}#tclunch` : pw);
 // 직원 계정의 비밀번호는 이름(내부 아이디)으로 정해지는 고정 값이다. DB의 lunch_private.set_name_password 와 같아야 한다.
 const namePw = (loginId) => `tclunch:${loginId}`;
-// 이름을 내부 아이디로: UTF-8 바이트를 16진수로 ('김' → 'ueab980')
-const nameToLoginId = (name) => `u${Array.from(new TextEncoder().encode(name), (x) => x.toString(16).padStart(2, '0')).join('')}`;
+// 이름을 내부 아이디로: UTF-8 바이트를 16진수로 ('김' → 'ueab980-…')
+// 뒤에 무작위 글자를 붙여서, 이름을 바꾼 사람의 예전 이름으로 새로 들어와도 겹치지 않게 한다 (최대 64자)
+const nameToLoginId = (name) => `u${Array.from(new TextEncoder().encode(name), (x) => x.toString(16).padStart(2, '0')).join('').slice(0, 50)}-${Math.random().toString(36).slice(2, 8)}`;
 
 const fail = (message, status = 400) => { const e = new Error(translateServer(message, lang)); e.status = status; throw e; };
 const failKey = (key, status) => fail(translate(lang, key), status);
