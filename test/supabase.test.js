@@ -194,7 +194,7 @@ test('날짜를 누를 때마다 +1명 (나 → 손님), −1로 줄이고, 내�
 });
 
 test('로그인 화면 공지: 누구나 읽고 관리자만 고침, 관리자 이름 바꿔도 로그인 아이디 유지', async () => {
-  assert.equal(await rpc('anon', 'login_notice'), '관리자 아이디: TC');
+  assert.equal(await rpc('anon', 'login_notice'), '관리자 아이디: TC (비밀번호: 1234)');
   await rejects(rpc('kim', 'admin_save_notice', { p_text: 'x' }), /관리자만/);
   await rpc('admin', 'admin_save_notice', { p_text: '관리자 아이디: TC / 비밀번호: 1234' });
   assert.equal(await rpc('anon', 'login_notice'), '관리자 아이디: TC / 비밀번호: 1234');

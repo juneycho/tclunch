@@ -1,5 +1,5 @@
 -- 2026-10-31 로그인 화면 공지 (관리자가 설정에서 고친다). 로그인 전에도 읽을 수 있다. 여러 번 실행해도 괜찮다.
-insert into lunch.settings (key, value) values ('login_notice', '관리자 아이디: TC')
+insert into lunch.settings (key, value) values ('login_notice', '관리자 아이디: TC (비밀번호: 1234)')
 on conflict (key) do nothing;
 
 create or replace function lunch.login_notice() returns text
