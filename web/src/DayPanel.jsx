@@ -3,7 +3,7 @@ import { api } from './api.js';
 import { deadlineParts, fmtDay, useT } from './i18n.js';
 import MyDay from './MyDay.jsx';
 
-// 사람별 인원: 본인 신청 1 + 그 사람이 추가한 손님
+// 신청자별 인원 (본인 포함 여부는 구분하지 않는다)
 function people(d) {
   const map = new Map(d.roster.map((r) => [r.id, { id: r.id, name: r.name, count: 1, signedUp: true, entries: [] }]));
   for (const g of d.guestEntries) {
@@ -53,10 +53,8 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
               <span className={`badge ${d.phase}`}>{t(`phase_${d.phase}`)}</span>
               {d.phase === 'open' && <span className="small muted">{t('closesAt', deadlineParts(d, t.lang, summary?.deadlineHour))}</span>}
             </div>
-            <div className="stats">
+            <div className="stats one">
               <div><b>{d.total}</b><span>{t('total')}</span></div>
-              <div><b>{d.members}</b><span>{t('staff')}</span></div>
-              <div><b>{d.guests}</b><span>{t('guests')}</span></div>
             </div>
             {d.phase === 'open' && (
               <div className="card"><MyDay date={date} count={(d.mine ? 1 : 0) + (d.myGuests || 0)} onDone={async () => { await load(); onChange(); }} /></div>
@@ -66,7 +64,7 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
             )}
             {msg && <p className={msg.ok ? 'ok' : 'err'}>{msg.text}</p>}
 
-            <h3>{t('attendees', { n: d.total })}</h3>
+            <h3>{t('byPerson')}</h3>
             <ul className="roster">
               {people(d).map((p) => (
                 <li key={p.id}>

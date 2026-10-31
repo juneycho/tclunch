@@ -83,6 +83,8 @@ const D = {
   ateDone: { ko: '출석 완료 ✓', en: 'Checked in ✓', vi: 'Đã điểm danh ✓' },
   ateMsg: { ko: '출석 체크 완료! 맛있게 드세요.', en: 'Checked in. Enjoy your meal!', vi: 'Đã điểm danh. Chúc ngon miệng!' },
   attendees: { ko: '신청자 {n}명', en: '{n} signed up', vi: '{n} người đăng ký' },
+  maxPeople: { ko: '한 사람이 최대 {n}명까지 신청할 수 있어요.', en: 'One person can book up to {n} people.', vi: 'Mỗi người đăng ký tối đa {n} người.' },
+  byPerson: { ko: '신청자별 인원', en: 'People per booker', vi: 'Số người theo người đăng ký' },
   nobodyYet: { ko: '아직 없어요.', en: 'Nobody yet.', vi: 'Chưa có ai.' },
   attended: { ko: '출석', en: 'Ate', vi: 'Đã ăn' },
   noShow: { ko: '노쇼', en: 'No-show', vi: 'Vắng' },
@@ -183,7 +185,7 @@ const D = {
   promptBody: { ko: '신청 마감(목 17:40, 금 06:45, 금 15:00)을 알려 드려요. 다음 화면에서 "허용"을 눌러 주세요.', en: 'We remind you before the deadline (Thu 17:40, Fri 06:45, Fri 15:00). Tap "Allow" on the next screen.', vi: 'Nhắc hạn đăng ký (T5 17:40, T6 06:45, T6 15:00). Bấm "Cho phép" ở màn hình tiếp theo.' },
   promptIosTitle: { ko: '아이폰은 홈 화면에 추가해야 알림이 와요', en: 'On iPhone, add the app to your home screen for notifications', vi: 'Trên iPhone, hãy thêm vào màn hình chính để nhận thông báo' },
   promptIosBody: { ko: '1. Safari 아래쪽 공유 버튼(□↑)을 누르세요.\n2. "홈 화면에 추가"를 누르세요.\n3. 홈 화면에 생긴 아이콘으로 앱을 열면 알림 켜기 창이 떠요.', en: '1. Tap the Share button (□↑) at the bottom of Safari.\n2. Tap "Add to Home Screen".\n3. Open the app from the new home-screen icon and you will be asked to turn on notifications.', vi: '1. Bấm nút Chia sẻ (□↑) ở dưới Safari.\n2. Bấm "Thêm vào MH chính".\n3. Mở ứng dụng từ biểu tượng mới, sẽ có hỏi bật thông báo.' },
-  tapHint: { ko: '흰색 날짜를 누르고 인원(손님 포함)을 정한 뒤 확인을 누르세요. 바꿀 때도 같아요. 0명으로 하면 취소돼요.', en: 'Tap a white date, set the number of people (incl. guests) and press OK. Same to change. Set 0 to cancel.', vi: 'Chạm ngày màu trắng, chọn số người (gồm khách) rồi bấm OK. Thay đổi cũng vậy. Chọn 0 để hủy.' },
+  tapHint: { ko: '흰색 날짜를 누르고 인원을 정한 뒤 확인을 누르세요. 바꿀 때도 같아요. 0명으로 하면 취소돼요.', en: 'Tap a white date, set the number of people and press OK. Same to change. Set 0 to cancel.', vi: 'Chạm ngày màu trắng, chọn số người rồi bấm OK. Thay đổi cũng vậy. Chọn 0 để hủy.' },
   savedCount: { ko: '{n}명으로 신청했어요.', en: 'Booked for {n}.', vi: 'Đã đặt {n} người.' },
   nowCount: { ko: '지금 {n}명', en: 'now {n}', vi: 'hiện {n}' },
   myCount: { ko: '내 신청', en: 'Mine', vi: 'Của tôi' },
@@ -256,7 +258,7 @@ const D = {
   setAttendanceClose: { ko: '출석 체크 마감 시각 (이후 미체크는 노쇼)', en: 'Check-in closes at (unchecked = no-show)', vi: 'Hết giờ điểm danh (chưa điểm danh = vắng)' },
   setNoShowThreshold: { ko: '관리자에게 알릴 노쇼 횟수 (최근 90일)', en: 'Alert admins at this many no-shows (90 days)', vi: 'Báo quản trị khi vắng từ (90 ngày)' },
   setReminderHour: { ko: '마감 알림 시각 (목·금 오전)', en: 'Deadline reminder hour (Thu & Fri morning)', vi: 'Giờ nhắc hạn (sáng T5 & T6)' },
-  setMaxGuests: { ko: '한 번에 추가할 수 있는 최대 손님 수', en: 'Max guests per entry', vi: 'Số khách tối đa mỗi lần' },
+  setMaxGuests: { ko: '한 사람이 한 날짜에 신청할 수 있는 최대 인원', en: 'Max people one person can book per day', vi: 'Số người tối đa một người đăng ký mỗi ngày' },
   unitHour: { ko: '시', en: 'h', vi: 'giờ' },
   unitTimes: { ko: '회', en: 'times', vi: 'lần' },
   unitPeople: { ko: '명', en: 'people', vi: 'người' },
@@ -350,7 +352,6 @@ const SERVER = [
   [/^마감 후에는 취소할 수 없어요/, { en: 'You can’t cancel after the deadline. Ask an admin if needed.', vi: 'Không thể hủy sau hạn. Hãy nhờ quản trị viên nếu cần.' }],
   [/^출석 체크는 식사 당일 (\d+)시 전까지만/, { en: 'Check-in is only possible on the day, before {1}:00.', vi: 'Chỉ điểm danh trong ngày, trước {1}:00.' }],
   [/^신청하지 않은 날이에요\.$/, { en: "You didn't sign up for this day.", vi: 'Bạn chưa đăng ký ngày này.' }],
-  [/^손님 수는 1~(\d+)명이에요\.$/, { en: 'Guests must be between 1 and {1}.', vi: 'Số khách từ 1 đến {1}.' }],
   [/^본인이 추가한 손님만 지울 수 있어요\.$/, { en: 'You can only delete guests you added.', vi: 'Chỉ xóa được khách do bạn thêm.' }],
   [/^점심 신청 대상 계정이 아니에요\.$/, { en: 'This account does not eat lunch here.', vi: 'Tài khoản này không đăng ký ăn trưa.' }],
   [/^관리자만 할 수 있어요\.$/, { en: 'Admins only.', vi: 'Chỉ quản trị viên.' }],
@@ -366,6 +367,9 @@ const SERVER = [
   [/^직원은 비밀번호 없이/, { en: 'Staff sign in with just their name. Only admin accounts have passwords.', vi: 'Nhân viên chỉ cần tên. Chỉ tài khoản quản trị có mật khẩu.' }],
 ];
 export function translateServer(msg, lang) {
+  // 손님 개념은 화면에 없으므로 '한 사람 최대 인원'으로 바꿔 보여 준다 (DB 한도는 본인 1명 + 손님 수)
+  const max = msg && msg.match(/^손님 수는 1~(\d+)명이에요\.$/);
+  if (max) return translate(lang, 'maxPeople', { n: Number(max[1]) + 1 });
   if (!msg || lang === 'ko') return msg;
   const toDay = (s) => s.replace(KO_DAY, (_, m, d, w) => fmtDay(`2000-${m.padStart(2, '0')}-${d.padStart(2, '0')}`.replace('2000', guessYear(m)), lang));
   for (const [re, tr] of SERVER) {

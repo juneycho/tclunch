@@ -105,6 +105,7 @@ function Settings() {
     e.preventDefault();
     try {
       const body = Object.fromEntries(fields.map(([k]) => [k, Number(s[k])]));
+      body.max_guests = Math.max(Number(shown(s, 'max_guests')) - 1, 0);
       setS(await api('/admin/settings', { method: 'PUT', body }));
       setMsg({ ok: true, text: t('saved') });
     } catch (err) { setMsg({ ok: false, text: err.message }); }
@@ -115,13 +116,19 @@ function Settings() {
       <p className="small muted">{t('tzNote')}</p>
       {fields.map(([k, label, unit]) => (
         <label key={k}>{t(label)}
-          <span className="row gap"><input type="number" value={s[k] ?? ''} onChange={(e) => setS({ ...s, [k]: e.target.value })} className={k === 'meal_price' ? '' : 'short'} />{unit && t(unit)}</span>
+          <span className="row gap"><input type="number" value={shown(s, k)} onChange={(e) => setS({ ...s, [k]: e.target.value, ...(k === 'max_guests' ? { maxPeople: e.target.value } : {}) })} className={k === 'meal_price' ? '' : 'short'} />{unit && t(unit)}</span>
         </label>
       ))}
       {msg && <p className={msg.ok ? 'ok' : 'err'}>{msg.text}</p>}
       <button className="primary">{t('save')}</button>
     </form>
   );
+}
+
+// 화면에는 '한 사람 최대 인원'(= 본인 1 + 손님 한도)으로 보여 준다
+function shown(s, k) {
+  if (k !== 'max_guests') return s[k] ?? '';
+  return s.maxPeople ?? (s.max_guests == null ? '' : Number(s.max_guests) + 1);
 }
 
 function Audit() {

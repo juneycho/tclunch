@@ -142,6 +142,7 @@ table.grid { border-collapse: collapse; width: 100%; font-size: .88rem; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .stats > div { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; display: flex; flex-direction: column; }
 .stats b { font-size: 1.4rem; } .stats span { font-size: .75rem; color: var(--muted); }
+.stats.one { grid-template-columns: 1fr; }
 .menu-card { display: flex; flex-direction: column; gap: 2px; } .menu-card p { margin: 4px 0 0; font-size: .9rem; }
 .card > * + * { margin-top: 10px; }
 .stepper { display: flex; align-items: center; gap: 10px; }
