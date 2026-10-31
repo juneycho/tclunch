@@ -176,4 +176,4 @@ details > summary { cursor: pointer; }
 .iconbtn .dot { position: absolute; top: 0; right: 0; background: var(--orange); color: #fff; font-style: normal; font-size: 10px; min-width: 16px; height: 16px; border-radius: 8px; display: grid; place-items: center; padding: 0 4px; }
 .stack-s > * + * { margin-top: 8px; }
 .stack-s p { margin: 0; }
-.holiday-btn { display: block; padding: 4px 0 0; color: var(--red); }
+.holiday-btn { display: block; padding: 4px 0 0; color: var(--red); white-space: normal; text-align: left; max-width: 6.5em; }

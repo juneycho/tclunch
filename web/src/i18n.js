@@ -98,7 +98,7 @@ const D = {
   added: { ko: '추가했어요.', en: 'Added.', vi: 'Đã thêm.' },
   adminDay: { ko: '휴일 지정 / 해제', en: 'Mark as holiday / open', vi: 'Đặt ngày nghỉ / mở lại' },
   dayNote: { ko: '메모 (예: 창립기념일)', en: 'Note (e.g. company holiday)', vi: 'Ghi chú (vd: nghỉ lễ)' },
-  makeClosed: { ko: '휴일로', en: 'Holiday', vi: 'Ngày nghỉ' },
+  makeClosed: { ko: '휴일로 변경', en: 'Change to holiday', vi: 'Đổi thành ngày nghỉ' },
   makeOpen: { ko: '운영일로', en: 'Open day', vi: 'Mở ngày' },
   confirmHoliday: { ko: '{d}을(를) 휴일로 바꿀까요? 이날 신청은 식사 횟수에서 빠져요.', en: 'Make {d} a holiday? Sign-ups on this day will not be counted.', vi: 'Đặt {d} là ngày nghỉ? Đăng ký ngày này sẽ không được tính.' },
   holidayNote: { ko: '휴일', en: 'Holiday', vi: 'Nghỉ' },

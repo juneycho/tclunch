@@ -125,7 +125,6 @@ function Settings() {
     ['deadline_weekday', 'setDeadlineWeekday', ''],
     ['deadline_hour', 'setDeadlineHour', 'unitHour'],
     ['meal_price', 'setMealPrice', ''],
-    ['reminder_hour', 'setReminderHour', 'unitHour'],
     ['max_guests', 'setMaxGuests', 'unitPeople'],
   ];
   async function save(e) {
