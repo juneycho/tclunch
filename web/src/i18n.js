@@ -23,9 +23,9 @@ const D = {
   hello: { ko: '{name}님', en: 'Hi, {name}', vi: 'Chào {name}' },
 
   tabCalendar: { ko: '달력', en: 'Calendar', vi: 'Lịch' },
-  tabSheet: { ko: '요리사 시트', en: 'Cook sheet', vi: 'Bảng bếp' },
-  tabSummary: { ko: '종합', en: 'Summary', vi: 'Tổng hợp' },
-  tabMy: { ko: '내 기록', en: 'Me', vi: 'Của tôi' },
+  tabSheet: { ko: '요리사', en: 'Cook', vi: 'Bếp' },
+  tabSummary: { ko: '식사기록', en: 'Meal records', vi: 'Bữa ăn' },
+  tabMy: { ko: '알림', en: 'Notifications', vi: 'Thông báo' },
   tabAdmin: { ko: '관리자', en: 'Admin', vi: 'Quản trị' },
 
   budgetTotal: { ko: '총예산', en: 'Budget', vi: 'Ngân sách' },
@@ -96,10 +96,12 @@ const D = {
   pickStaff: { ko: '직원 선택', en: 'Choose staff', vi: 'Chọn nhân viên' },
   add: { ko: '추가', en: 'Add', vi: 'Thêm' },
   added: { ko: '추가했어요.', en: 'Added.', vi: 'Đã thêm.' },
-  adminDay: { ko: '관리자: 운영일/휴무일 설정', en: 'Admin: open or close this day', vi: 'Quản trị: mở/đóng ngày này' },
+  adminDay: { ko: '휴일 지정 / 해제', en: 'Mark as holiday / open', vi: 'Đặt ngày nghỉ / mở lại' },
   dayNote: { ko: '메모 (예: 창립기념일)', en: 'Note (e.g. company holiday)', vi: 'Ghi chú (vd: nghỉ lễ)' },
-  makeClosed: { ko: '휴무일로', en: 'Close day', vi: 'Đóng ngày' },
+  makeClosed: { ko: '휴일로', en: 'Holiday', vi: 'Ngày nghỉ' },
   makeOpen: { ko: '운영일로', en: 'Open day', vi: 'Mở ngày' },
+  confirmHoliday: { ko: '{d}을(를) 휴일로 바꿀까요? 이날 신청은 식사 횟수에서 빠져요.', en: 'Make {d} a holiday? Sign-ups on this day will not be counted.', vi: 'Đặt {d} là ngày nghỉ? Đăng ký ngày này sẽ không được tính.' },
+  holidayNote: { ko: '휴일', en: 'Holiday', vi: 'Nghỉ' },
   resetDefault: { ko: '기본값', en: 'Default', vi: 'Mặc định' },
   saved: { ko: '저장했어요.', en: 'Saved.', vi: 'Đã lưu.' },
 
@@ -131,9 +133,9 @@ const D = {
   noExpenses: { ko: '최근 60일 지출이 없어요.', en: 'No expenses in the last 60 days.', vi: 'Không có chi phí trong 60 ngày qua.' },
   confirmDeleteExpense: { ko: '{d} {v} 지출을 지울까요?', en: 'Delete expense {v} on {d}?', vi: 'Xóa chi phí {v} ngày {d}?' },
 
-  summaryTitle: { ko: '월별 식사 횟수', en: 'Meals per month', vi: 'Số bữa theo tháng' },
-  summaryLegend: { ko: '● 먹음 · ✕ 노쇼 · ○ 신청(예정)', en: '● ate · ✕ no-show · ○ signed up (upcoming)', vi: '● đã ăn · ✕ vắng · ○ đã đăng ký (sắp tới)' },
-  colMeals: { ko: '식사', en: 'Meals', vi: 'Bữa' },
+  summaryTitle: { ko: '신청내용', en: 'Sign-ups', vi: 'Đăng ký' },
+  summaryLegend: { ko: '● 신청한 날 · 휴일로 바뀐 날은 세지 않아요', en: '● signed up · holidays are not counted', vi: '● đã đăng ký · ngày nghỉ không được tính' },
+  colMeals: { ko: '횟수', en: 'Meals', vi: 'Số bữa' },
   colNoShows: { ko: '노쇼', en: 'No-show', vi: 'Vắng' },
   guestRow: { ko: '손님', en: 'Guests', vi: 'Khách' },
   noData: { ko: '기록이 없어요.', en: 'No records.', vi: 'Chưa có dữ liệu.' },
@@ -162,7 +164,11 @@ const D = {
   pwMismatch: { ko: '새 비밀번호 확인이 달라요.', en: "The new passwords don't match.", vi: 'Mật khẩu mới không khớp.' },
   change: { ko: '변경', en: 'Change', vi: 'Đổi' },
   changed: { ko: '바꿨어요.', en: 'Changed.', vi: 'Đã đổi.' },
-  pushPrompt: { ko: '마감 리마인드, 메뉴, 노쇼 알림을 휴대폰으로 받아보세요.', en: 'Get deadline reminders, menus and no-show alerts on your phone.', vi: 'Nhận nhắc hạn, thực đơn và thông báo vắng trên điện thoại.' },
+  pushPrompt: { ko: '목·금 오전 마감 알림과 메뉴 알림을 휴대폰으로 받아보세요.', en: 'Get Thursday/Friday deadline reminders and menus on your phone.', vi: 'Nhận nhắc hạn sáng T5/T6 và thực đơn trên điện thoại.' },
+  pushTest: { ko: '시험 알림 보내기', en: 'Send a test', vi: 'Gửi thử' },
+  pushTestSent: { ko: '1분 안에 이 휴대폰에 알림이 와야 해요. 앱을 닫아 두고 기다려 보세요.', en: 'A notification should arrive on this phone within a minute. Close the app and wait.', vi: 'Thông báo sẽ đến trong vòng 1 phút. Hãy đóng ứng dụng và chờ.' },
+  pushServerNotReady: { ko: '서버 쪽 휴대폰 알림 설정이 아직 안 돼 있어요. 관리자에게 알려 주세요. (앱 안 알림은 여기서 볼 수 있어요)', en: 'Phone notifications are not set up on the server yet. Please tell an admin. (You can still see notifications here.)', vi: 'Máy chủ chưa cài thông báo điện thoại. Hãy báo quản trị viên. (Vẫn xem được thông báo tại đây.)' },
+  pushDenied: { ko: '이 기기에서 알림이 차단돼 있어요. 휴대폰 설정 → 알림에서 이 앱(또는 브라우저)을 허용해 주세요.', en: 'Notifications are blocked on this device. Allow them in your phone settings → Notifications.', vi: 'Thông báo bị chặn. Hãy cho phép trong Cài đặt → Thông báo.' },
   pushOn: { ko: '휴대폰 알림이 켜져 있어요.', en: 'Phone notifications are on.', vi: 'Đã bật thông báo điện thoại.' },
   pushEnable: { ko: '알림 켜기', en: 'Turn on', vi: 'Bật' },
   pushReconnect: { ko: '다시 연결', en: 'Reconnect', vi: 'Kết nối lại' },
@@ -203,7 +209,7 @@ const D = {
   colSignups: { ko: '신청', en: 'Sign-ups', vi: 'Đăng ký' },
   col90: { ko: '90일', en: '90d', vi: '90 ngày' },
   budgetTitle: { ko: '식비 예산', en: 'Food budget', vi: 'Ngân sách ăn uống' },
-  budgetHint: { ko: '기간별 총예산을 넣으면 맨 위에 총예산/사용/남은 예산이 보여요. 지출은 요리사 시트 탭에서 입력해요.', en: 'Enter a budget per period to show budget / spent / remaining at the top. Expenses are entered in the Cook sheet tab.', vi: 'Nhập ngân sách theo kỳ để hiển thị ở trên cùng. Chi phí nhập ở tab Bảng bếp.' },
+  budgetHint: { ko: '기간별 총예산을 넣으면 맨 위에 총예산/사용/남은 예산이 보여요. 지출은 요리사 탭에서 입력해요.', en: 'Enter a budget per period to show budget / spent / remaining at the top. Expenses are entered in the Cook tab.', vi: 'Nhập ngân sách theo kỳ để hiển thị ở trên cùng. Chi phí nhập ở tab Bếp.' },
   budgetAmount: { ko: '예산', en: 'Budget', vi: 'Ngân sách' },
   memo: { ko: '메모', en: 'Note', vi: 'Ghi chú' },
   confirmDeleteBudget: { ko: '이 예산을 지울까요?', en: 'Delete this budget?', vi: 'Xóa ngân sách này?' },
@@ -213,7 +219,7 @@ const D = {
   setMealPrice: { ko: '1인 점심 예산 (VND)', en: 'Lunch budget per person (VND)', vi: 'Ngân sách mỗi suất (VND)' },
   setAttendanceClose: { ko: '출석 체크 마감 시각 (이후 미체크는 노쇼)', en: 'Check-in closes at (unchecked = no-show)', vi: 'Hết giờ điểm danh (chưa điểm danh = vắng)' },
   setNoShowThreshold: { ko: '관리자에게 알릴 노쇼 횟수 (최근 90일)', en: 'Alert admins at this many no-shows (90 days)', vi: 'Báo quản trị khi vắng từ (90 ngày)' },
-  setReminderHour: { ko: '마감 전날 리마인드 시각', en: 'Reminder hour (day before deadline)', vi: 'Giờ nhắc (trước hạn 1 ngày)' },
+  setReminderHour: { ko: '마감 알림 시각 (목·금 오전)', en: 'Deadline reminder hour (Thu & Fri morning)', vi: 'Giờ nhắc hạn (sáng T5 & T6)' },
   setMaxGuests: { ko: '한 번에 추가할 수 있는 최대 손님 수', en: 'Max guests per entry', vi: 'Số khách tối đa mỗi lần' },
   unitHour: { ko: '시', en: 'h', vi: 'giờ' },
   unitTimes: { ko: '회', en: 'times', vi: 'lần' },
@@ -243,7 +249,10 @@ const D = {
   n_menuChanged: { ko: '{d} 메뉴 변경: {title}', en: 'Menu changed for {d}: {title}', vi: 'Đổi thực đơn {d}: {title}' },
   n_confirmed: { ko: '{d} 인원 확정: {total}명', en: '{d} confirmed: {total} people', vi: '{d} đã chốt: {total} người' },
   n_confirmedBody: { ko: '직원 {members}명 + 손님 {guests}명 · 예산 {budget}. 메뉴를 등록해 주세요.', en: '{members} staff + {guests} guests · budget {budget}. Please set the menu.', vi: '{members} nhân viên + {guests} khách · ngân sách {budget}. Vui lòng nhập thực đơn.' },
-  n_remind: { ko: '다음 주 점심 신청이 내일 {h}시에 마감돼요', en: "Next week's lunch sign-up closes tomorrow at {h}:00", vi: 'Đăng ký bữa trưa tuần sau đóng lúc {h}:00 ngày mai' },
+  n_remind: { ko: '내일 {h}시, 다음 주 점심 신청이 마감돼요', en: "Next week's lunch sign-up closes tomorrow at {h}:00", vi: 'Đăng ký bữa trưa tuần sau đóng lúc {h}:00 ngày mai' },
+  n_remindToday: { ko: '오늘 {h}시, 다음 주 점심 신청이 마감돼요', en: "Next week's lunch sign-up closes today at {h}:00", vi: 'Đăng ký bữa trưa tuần sau đóng lúc {h}:00 hôm nay' },
+  n_test: { ko: 'Thanh Cong Lunch 알림 시험', en: 'Thanh Cong Lunch test notification', vi: 'Thông báo thử Thanh Cong Lunch' },
+  n_testBody: { ko: '이 알림이 보이면 휴대폰 알림이 잘 되는 거예요.', en: 'If you can see this, phone notifications work.', vi: 'Nếu bạn thấy thông báo này, thông báo điện thoại đã hoạt động.' },
   n_remindBody: { ko: '드실 날을 골라 신청해 주세요.', en: 'Please pick the days you will eat.', vi: 'Hãy chọn những ngày bạn sẽ ăn.' },
   n_noshow: { ko: '{d} 점심 노쇼로 기록됐어요', en: 'Marked as no-show for {d}', vi: 'Bị ghi vắng ngày {d}' },
   n_noshowBody: { ko: '신청하고 드시지 않았어요. 착오라면 요리사나 관리자에게 말해 주세요.', en: "You signed up but didn't check in. If this is wrong, tell the cook or an admin.", vi: 'Bạn đã đăng ký nhưng không điểm danh. Nếu nhầm, hãy báo đầu bếp hoặc quản trị viên.' },
@@ -340,7 +349,8 @@ export function renderNotification(n, lang) {
       title: translate(lang, 'n_confirmed', { d, total: p.total }),
       body: translate(lang, 'n_confirmedBody', { members: p.members, guests: p.guests, budget: money(p.budget) }),
     };
-    case 'remind': return { title: translate(lang, 'n_remind', { h: p.hour }), body: translate(lang, 'n_remindBody') };
+    case 'remind': return { title: translate(lang, p.today ? 'n_remindToday' : 'n_remind', { h: p.hour }), body: translate(lang, 'n_remindBody') };
+    case 'test': return { title: translate(lang, 'n_test'), body: translate(lang, 'n_testBody') };
     case 'noshow': return { title: translate(lang, 'n_noshow', { d }), body: translate(lang, 'n_noshowBody') };
     case 'noshow-admin': return {
       title: translate(lang, 'n_noshowAdmin', { name: p.name, count: p.count }),

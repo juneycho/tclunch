@@ -59,6 +59,13 @@ function SheetRow({ d, canEdit, onOpen, onSaved }) {
   const [title, setTitle] = useState(d.menu?.title || '');
   const [desc, setDesc] = useState(d.menu?.description || '');
   const [err, setErr] = useState(null);
+  async function holiday() {
+    if (!window.confirm(t('confirmHoliday', { d: fmtDay(d.date, t.lang) }))) return;
+    try {
+      await api(`/admin/days/${d.date}`, { method: 'PUT', body: { closed: true, note: t('holidayNote') } });
+      onSaved();
+    } catch (e) { setErr(e.message); }
+  }
   async function save() {
     try {
       await api(`/days/${d.date}/menu`, { method: 'PUT', body: { title, description: desc } });
@@ -71,6 +78,7 @@ function SheetRow({ d, canEdit, onOpen, onSaved }) {
       <td className="date">
         <button className="link strong" onClick={onOpen}>{fmtDay(d.date, t.lang)}</button>
         <span className={`badge ${d.phase}`}>{t(`phase_${d.phase}`)}</span>
+        {canEdit && d.phase !== 'past' && <button className="link small holiday-btn" onClick={holiday}>{t('makeClosed')}</button>}
       </td>
       <td>
         <div className="names">{d.names.length ? d.names.join(', ') : <span className="muted">—</span>}</div>
@@ -78,6 +86,7 @@ function SheetRow({ d, canEdit, onOpen, onSaved }) {
           <div key={g.id} className="small guestline">+ {t('guestsShort', { n: g.count })}{g.note ? ` (${g.note})` : ''} · {t('addedBy', { name: g.host })}</div>
         ))}
         <div className="menu-line">
+          {err && !edit && <p className="err">{err}</p>}
           {edit ? (
             <div className="form">
               <input placeholder={t('menuPlaceholder')} value={title} onChange={(e) => setTitle(e.target.value)} maxLength={60} />

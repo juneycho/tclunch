@@ -7,9 +7,8 @@ const shiftMonth = (m, n) => {
   d.setUTCMonth(d.getUTCMonth() + n);
   return d.toISOString().slice(0, 7);
 };
-const MARK = { A: '●', N: '✕', S: '○' };
 
-// 종합판: 월별 사용자별 식사 횟수 (출석표 모양)
+// 식사기록(신청내용): 월별 사람별 신청 횟수 (출석표 모양). 휴일로 바뀐 날은 빠진다.
 export default function Summary() {
   const t = useT();
   const [data, setData] = useState(null);
@@ -20,7 +19,7 @@ export default function Summary() {
   if (err) return <p className="err">{err}</p>;
   if (!data) return <p className="muted">{t('loading')}</p>;
   const wd = weekdayNames(t.lang);
-  const dayTotal = (d) => data.rows.reduce((a, r) => a + (r.cells[d] && r.cells[d] !== 'N' ? 1 : 0), 0) + (data.guests[d] || 0);
+  const dayTotal = (d) => data.rows.reduce((a, r) => a + (r.cells[d] ? 1 : 0), 0) + Number(data.guests[d] || 0);
 
   return (
     <div className="stack">
@@ -37,7 +36,6 @@ export default function Summary() {
               <tr>
                 <th className="sticky">{t('colName')}</th>
                 <th className="tot">{t('colMeals')}</th>
-                <th className="tot">{t('colNoShows')}</th>
                 {data.days.map((d) => (
                   <th key={d} className={weekdayOf(d) === 6 ? 'sat' : weekdayOf(d) === 0 ? 'sun' : ''}>
                     {Number(d.slice(8))}<small>{wd[weekdayOf(d)]}</small>
@@ -50,14 +48,12 @@ export default function Summary() {
                 <tr key={r.id}>
                   <th className="sticky">{r.name}</th>
                   <td className="tot"><b>{r.meals}</b></td>
-                  <td className={`tot${r.noShows ? ' err' : ''}`}>{r.noShows || ''}</td>
-                  {data.days.map((d) => <td key={d} className={`c${r.cells[d] || ''}`}>{MARK[r.cells[d]] || ''}</td>)}
+                  {data.days.map((d) => <td key={d} className="cA">{r.cells[d] ? '●' : ''}</td>)}
                 </tr>
               ))}
               <tr className="guestrow">
                 <th className="sticky">{t('guestRow')}</th>
                 <td className="tot"><b>{Object.values(data.guests).reduce((a, n) => a + Number(n), 0)}</b></td>
-                <td className="tot" />
                 {data.days.map((d) => <td key={d}>{data.guests[d] || ''}</td>)}
               </tr>
             </tbody>
@@ -65,7 +61,6 @@ export default function Summary() {
               <tr>
                 <th className="sticky">{t('colTotal')}</th>
                 <td className="tot"><b>{data.days.reduce((a, d) => a + dayTotal(d), 0)}</b></td>
-                <td className="tot" />
                 {data.days.map((d) => <td key={d}>{dayTotal(d) || ''}</td>)}
               </tr>
             </tfoot>

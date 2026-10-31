@@ -30,9 +30,6 @@ export default function Calendar({ user, summary, onChange }) {
   return (
     <div>
       <div className="deadline-note">⏰ {t('deadlineNotice')}</div>
-      {summary?.noShows?.last90 >= summary?.noShowThreshold && (
-        <div className="notice warn">{t('noShowWarn', { n: summary.noShows.last90 })}</div>
-      )}
       <div className="monthbar">
         <button onClick={() => load(shiftMonth(month, -1))} aria-label={t('prevMonth')}>‹</button>
         <h2>{monthTitle(month, t.lang)}</h2>

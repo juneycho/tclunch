@@ -1,12 +1,12 @@
 import React, { useContext } from 'react';
 import { LangContext, LANGS, useT } from './i18n.js';
 
-export function LangPicker() {
+export function LangPicker({ compact = false }) {
   const t = useT();
   const { setLang } = useContext(LangContext);
   return (
     <select className="lang" value={t.lang} onChange={(e) => setLang(e.target.value)} aria-label={t('language')}>
-      {LANGS.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+      {LANGS.map(([k, label]) => <option key={k} value={k}>{compact ? k.toUpperCase() : label}</option>)}
     </select>
   );
 }

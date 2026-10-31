@@ -112,6 +112,8 @@ const routes = [
   }],
   ['POST', /^\/notifications\/read$/, () => rpc('mark_notifications_read')],
   ['GET', /^\/push\/key$/, async () => (await fetch(`${SUPABASE_URL}/functions/v1/push-dispatch?key=1`)).json()],
+  ['POST', /^\/push\/test$/, () => rpc('send_test_notification')],
+  ['GET', /^\/push\/status$/, () => rpc('push_status')],
   ['POST', /^\/push\/subscribe$/, (q, b) => rpc('save_push_sub', { p_endpoint: b.endpoint, p_p256dh: b.keys?.p256dh, p_auth: b.keys?.auth })],
 
   // 관리자

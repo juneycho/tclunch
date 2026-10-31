@@ -1,62 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { api } from './api.js';
-import { fmtDay, renderNotification, useT } from './i18n.js';
+import { renderNotification, useT } from './i18n.js';
 
-export default function My({ user, summary, onLogout, onRead }) {
+export default function My({ user, onLogout, onRead }) {
   const t = useT();
   const [notes, setNotes] = useState([]);
-  const [hist, setHist] = useState([]);
 
-  useEffect(() => {
-    api('/notifications').then((r) => {
-      setNotes(r.notifications);
-      if (r.notifications.some((n) => !n.read)) api('/notifications/read', { method: 'POST' }).then(onRead);
-    });
-    api('/my/history').then((r) => setHist(r.history));
-  }, [onRead]);
+  const load = useCallback(() => api('/notifications').then((r) => {
+    setNotes(r.notifications);
+    if (r.notifications.some((n) => !n.read)) api('/notifications/read', { method: 'POST' }).then(onRead);
+  }), [onRead]);
+  useEffect(() => { load(); }, [load]);
 
-  const ns = summary?.noShows;
   return (
     <div className="stack">
-      {user.isMember && ns && (
-        <div className="stats">
-          <div><b>{ns.signups}</b><span>{t('pastSignups')}</span></div>
-          <div><b className={ns.total ? 'neg' : ''}>{ns.total}</b><span>{t('noShowTotal')}</span></div>
-          <div><b className={ns.last90 >= summary.noShowThreshold ? 'neg' : ''}>{ns.last90}</b><span>{t('noShow90')}</span></div>
-        </div>
-      )}
-      <PushToggle />
+      <PushToggle onTest={load} />
       <section className="card">
         <h3>{t('notifications')}</h3>
         <ul className="list">
           {notes.map((n) => {
             const { title, body } = renderNotification(n, t.lang);
             return (
-            <li key={n.id} className={n.read ? '' : 'unread'}>
-              <b>{title}</b>{body && <p className="small">{body}</p>}
-              <span className="small muted">{n.createdAt.slice(0, 16)}</span>
-            </li>
+              <li key={n.id} className={n.read ? '' : 'unread'}>
+                <b>{title}</b>{body && <p className="small">{body}</p>}
+                <span className="small muted">{n.createdAt.slice(0, 16)}</span>
+              </li>
             );
           })}
           {!notes.length && <li className="muted">{t('noNotifications')}</li>}
         </ul>
       </section>
-      {user.isMember && (
-        <section className="card">
-          <h3>{t('myHistory')}</h3>
-          <ul className="list">
-            {hist.map((h) => (
-              <li key={h.date} className="row between">
-                <span>{fmtDay(h.date, t.lang)}</span>
-                <span className={h.attended ? 'ok' : h.closed ? 'err' : 'muted'}>
-                  {h.attended ? t('attended') : h.closed ? t('noShow') : h.phase === 'today' ? t('phase_today') : t('upcoming')}
-                </span>
-              </li>
-            ))}
-            {!hist.length && <li className="muted">{t('neverSigned')}</li>}
-          </ul>
-        </section>
-      )}
       {user.isAdmin && (
         <details className="card">
           <summary>{t('changeAdminPw')}</summary>
@@ -100,40 +73,57 @@ function urlB64ToUint8Array(b64) {
   return Uint8Array.from(raw, (c) => c.charCodeAt(0));
 }
 
-function PushToggle() {
+// 휴대폰 알림 켜기. 안드로이드는 크롬에서 바로, 아이폰은 홈 화면에 추가한 앱에서만(iOS 16.4 이상) 된다.
+function PushToggle({ onTest }) {
   const t = useT();
   const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
-  const [state, setState] = useState(supported ? Notification.permission : 'unsupported');
+  const [perm, setPerm] = useState(supported ? Notification.permission : 'unsupported');
+  const [status, setStatus] = useState(null);
   const [msg, setMsg] = useState(null);
   const isIos = /iphone|ipad/i.test(navigator.userAgent);
-  const standalone = window.matchMedia?.('(display-mode: standalone)').matches;
+  const standalone = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone;
+
+  useEffect(() => { api('/push/status').then(setStatus).catch(() => {}); }, []);
 
   async function enable() {
+    setMsg(null);
     try {
-      const perm = await Notification.requestPermission();
-      setState(perm);
-      if (perm !== 'granted') return;
+      const p = await Notification.requestPermission();
+      setPerm(p);
+      if (p !== 'granted') return;
       const reg = await navigator.serviceWorker.ready;
       const { key } = await api('/push/key');
+      if (!key) throw new Error(t('pushServerNotReady'));
       const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8Array(key) });
       await api('/push/subscribe', { method: 'POST', body: sub.toJSON() });
+      setStatus(await api('/push/status'));
       setMsg(t('pushDone'));
     } catch (e) { setMsg(t('pushFail', { e: e.message })); }
   }
-
-  if (state === 'unsupported') {
-    return (
-      <div className="notice small">
-        {isIos && !standalone
-          ? t('pushIos')
-          : t('pushUnsupported')}
-      </div>
-    );
+  async function test() {
+    setMsg(null);
+    try {
+      await api('/push/test', { method: 'POST' });
+      setMsg(t('pushTestSent'));
+      onTest?.();
+    } catch (e) { setMsg(e.message); }
   }
+
+  if (perm === 'unsupported') {
+    return <div className="notice small">{isIos && !standalone ? t('pushIos') : t('pushUnsupported')}</div>;
+  }
+  const on = perm === 'granted' && status?.myDevices > 0;
   return (
-    <div className="notice small row between">
-      <span>{state === 'granted' ? (msg || t('pushOn')) : t('pushPrompt')}</span>
-      {state === 'granted' ? <button className="link" onClick={enable}>{t('pushReconnect')}</button> : <button className="primary" onClick={enable}>{t('pushEnable')}</button>}
+    <div className="notice small stack-s">
+      {status && !status.serverReady && <p className="err">{t('pushServerNotReady')}</p>}
+      <div className="row between gap">
+        <span>{perm === 'denied' ? t('pushDenied') : on ? t('pushOn') : t('pushPrompt')}</span>
+        {perm !== 'denied' && (on
+          ? <button className="link" onClick={enable}>{t('pushReconnect')}</button>
+          : <button className="primary" onClick={enable}>{t('pushEnable')}</button>)}
+      </div>
+      {on && <button onClick={test}>{t('pushTest')}</button>}
+      {msg && <p>{msg}</p>}
     </div>
   );
 }

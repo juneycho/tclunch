@@ -4,8 +4,8 @@ self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
 
 self.addEventListener('push', (event) => {
   let data = {};
-  try { data = event.data.json(); } catch { data = { title: 'TC 점심', body: event.data?.text() }; }
-  event.waitUntil(self.registration.showNotification(data.title || 'TC 점심', {
+  try { data = event.data.json(); } catch { data = { title: 'Thanh Cong Lunch', body: event.data?.text() }; }
+  event.waitUntil(self.registration.showNotification(data.title || 'Thanh Cong Lunch', {
     body: data.body || '', icon: '/icon-192.png', badge: '/icon-192.png',
   }));
 });

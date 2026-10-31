@@ -8,12 +8,11 @@ export default function Admin({ user, onChange }) {
   return (
     <div className="stack">
       <nav className="subtabs">
-        {[['users', 'adminUsers'], ['noshow', 'adminNoShows'], ['budget', 'adminBudget'], ['settings', 'adminSettings'], ['audit', 'adminAudit']].map(([k, l]) => (
+        {[['users', 'adminUsers'], ['budget', 'adminBudget'], ['settings', 'adminSettings'], ['audit', 'adminAudit']].map(([k, l]) => (
           <button key={k} className={sec === k ? 'on' : ''} onClick={() => setSec(k)}>{t(l)}</button>
         ))}
       </nav>
       {sec === 'users' && <Users me={user} />}
-      {sec === 'noshow' && <NoShows />}
       {sec === 'budget' && <Budgets onChange={onChange} />}
       {sec === 'settings' && <Settings />}
       {sec === 'audit' && <Audit />}
@@ -66,28 +65,6 @@ function Users({ me }) {
         <p className="small muted">{t('newStaffHint')}</p>
       </section>
     </>
-  );
-}
-
-function NoShows() {
-  const t = useT();
-  const [rows, setRows] = useState([]);
-  useEffect(() => { api('/admin/noshows').then((r) => setRows(r.rows)); }, []);
-  return (
-    <section className="card">
-      <h3>{t('noShowsTitle')}</h3>
-      <p className="small muted">{t('noShowsHint')}</p>
-      <div className="table">
-        <div className="tr th"><span>{t('colName')}</span><span>{t('colSignups')}</span><span>{t('colNoShows')}</span><span>{t('col90')}</span></div>
-        {rows.map((r) => (
-          <div key={r.id} className={`tr ${r.status}`}>
-            <span>{r.name}</span><span>{r.signups}</span>
-            <span className={r.no_shows ? 'err' : ''}>{r.no_shows}</span>
-            <span className={r.no_shows_90d ? 'err' : ''}>{r.no_shows_90d}</span>
-          </div>
-        ))}
-      </div>
-    </section>
   );
 }
 
@@ -148,8 +125,6 @@ function Settings() {
     ['deadline_weekday', 'setDeadlineWeekday', ''],
     ['deadline_hour', 'setDeadlineHour', 'unitHour'],
     ['meal_price', 'setMealPrice', ''],
-    ['attendance_close_hour', 'setAttendanceClose', 'unitHour'],
-    ['noshow_threshold', 'setNoShowThreshold', 'unitTimes'],
     ['reminder_hour', 'setReminderHour', 'unitHour'],
     ['max_guests', 'setMaxGuests', 'unitPeople'],
   ];

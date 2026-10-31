@@ -44,12 +44,11 @@ function Main() {
     );
   }
 
+  // 아래 탭은 3개만. 알림·관리자 화면은 위쪽 아이콘으로 연다.
   const tabs = [
     { key: 'calendar', label: t('tabCalendar'), icon: 'calendar' },
-    { key: 'sheet', label: t('tabSheet'), icon: 'cook' },
     { key: 'summary', label: t('tabSummary'), icon: 'table' },
-    { key: 'my', label: t('tabMy'), icon: 'me', badge: summary?.unread },
-    ...(user.isAdmin ? [{ key: 'admin', label: t('tabAdmin'), icon: 'admin' }] : []),
+    { key: 'sheet', label: t('tabSheet'), icon: 'cook' },
   ];
   const b = summary?.budget;
 
@@ -61,7 +60,20 @@ function Main() {
           <h1 className="title">Thanh Cong Lunch Request</h1>
           <div className="who">{t('hello', { name: user.name })}</div>
         </div>
-        <LangPicker />
+        <LangPicker compact />
+        <button className={`iconbtn${tab === 'my' ? ' on' : ''}`} onClick={() => setTab('my')} aria-label={t('tabMy')}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 01-3.4 0" />
+          </svg>
+          {summary?.unread ? <i className="dot">{summary.unread}</i> : null}
+        </button>
+        {user.isAdmin && (
+          <button className={`iconbtn${tab === 'admin' ? ' on' : ''}`} onClick={() => setTab('admin')} aria-label={t('tabAdmin')}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" />
+            </svg>
+          </button>
+        )}
       </header>
       <div className="stripe"><i /><i /><i /><i /></div>
       <div className="pad">
@@ -78,7 +90,7 @@ function Main() {
           {tab === 'calendar' && <Calendar user={user} summary={summary} onChange={refreshSummary} />}
           {tab === 'sheet' && <Sheet user={user} summary={summary} onChange={refreshSummary} />}
           {tab === 'summary' && <Summary user={user} />}
-          {tab === 'my' && <My user={user} summary={summary} onLogout={() => setUser(null)} onRead={refreshSummary} />}
+          {tab === 'my' && <My user={user} onLogout={() => setUser(null)} onRead={refreshSummary} />}
           {tab === 'admin' && <Admin user={user} onChange={refreshSummary} />}
         </main>
       </div>

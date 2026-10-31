@@ -23,11 +23,8 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
     } catch (e) { setMsg({ ok: false, text: e.message }); return false; } finally { setBusy(false); }
   }
 
-  const canManageAttendance = d && (user.isAdmin || user.isCook) && (d.phase === 'today' || d.phase === 'past');
   const canAddGuests = d?.mealDay && (d.phase === 'open' || (user.isAdmin && d.phase !== 'past'));
-  const me = d?.roster.find((r) => r.id === user.id);
   const day = fmtDay(date, t.lang);
-  const status = (r) => (r.attended ? t('attended') : d.attendanceClosed ? t('noShow') : t('unknown'));
 
   return (
     <div className="sheet-bg" onClick={onClose}>
@@ -71,12 +68,6 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
             {user.isMember && d.phase === 'confirmed' && (
               <p className="small muted">{d.mine ? `${t('signedUpClosed')} ` : ''}{t('closedChange')}</p>
             )}
-            {d.canSelfCheck && me && (
-              <button className={me.attended ? 'done' : 'primary big'} disabled={busy || me.attended}
-                onClick={() => act(() => api(`/days/${date}/attendance`, { method: 'POST' }), t('ateMsg'))}>
-                {me.attended ? t('ateDone') : t('ate')}
-              </button>
-            )}
             {msg && <p className={msg.ok ? 'ok' : 'err'}>{msg.text}</p>}
 
             {canAddGuests && <AddGuests date={date} max={summary?.maxGuests ?? 20} busy={busy} act={act} />}
@@ -86,15 +77,6 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
               {d.roster.map((r) => (
                 <li key={r.id}>
                   <span>{r.name}</span>
-                  {canManageAttendance ? (
-                    <label className="check">
-                      <input type="checkbox" checked={r.attended} disabled={busy}
-                        onChange={(e) => act(() => api(`/days/${date}/attendance/${r.id}`, { method: 'PUT', body: { attended: e.target.checked } }))} />
-                      {status(r)}
-                    </label>
-                  ) : (d.phase === 'today' || d.phase === 'past') && (
-                    <span className={r.attended ? 'ok small' : d.attendanceClosed ? 'err small' : 'muted small'}>{status(r)}</span>
-                  )}
                   {user.isAdmin && (
                     <button className="link small" disabled={busy}
                       onClick={() => window.confirm(t('confirmRemoveSignup', { name: r.name })) &&
@@ -124,7 +106,7 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
             {user.isAdmin && <AdminAdd date={date} roster={d.roster} act={act} />}
           </>
         )}
-        {user.isAdmin && d && <DayOverride date={date} d={d} act={act} />}
+        {(user.isAdmin || user.isCook) && d && <DayOverride date={date} d={d} act={act} />}
       </div>
     </div>
   );
@@ -180,14 +162,15 @@ function AdminAdd({ date, roster, act }) {
 
 function DayOverride({ date, d, act }) {
   const t = useT();
-  const [note, setNote] = useState(d.note || '');
+  const [note, setNote] = useState(d.note || t('holidayNote'));
   return (
     <details className="admin-box">
       <summary>{t('adminDay')}</summary>
       <input placeholder={t('dayNote')} value={note} onChange={(e) => setNote(e.target.value)} maxLength={30} />
       <div className="row gap">
         {d.mealDay
-          ? <button onClick={() => act(() => api(`/admin/days/${date}`, { method: 'PUT', body: { closed: true, note } }), t('saved'))}>{t('makeClosed')}</button>
+          ? <button onClick={() => window.confirm(t('confirmHoliday', { d: fmtDay(date, t.lang) })) &&
+              act(() => api(`/admin/days/${date}`, { method: 'PUT', body: { closed: true, note } }), t('saved'))}>{t('makeClosed')}</button>
           : <button onClick={() => act(() => api(`/admin/days/${date}`, { method: 'PUT', body: { closed: false, note } }), t('saved'))}>{t('makeOpen')}</button>}
         <button className="link" onClick={() => act(() => api(`/admin/days/${date}`, { method: 'PUT', body: { reset: true } }), t('saved'))}>{t('resetDefault')}</button>
       </div>
