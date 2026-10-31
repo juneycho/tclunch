@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { api, fmtDay } from './api.js';
+import { api } from './api.js';
+import { fmtDay, renderNotification, useT } from './i18n.js';
 
 export default function My({ user, summary, onLogout, onRead }) {
+  const t = useT();
   const [notes, setNotes] = useState([]);
   const [hist, setHist] = useState([]);
 
@@ -18,60 +20,64 @@ export default function My({ user, summary, onLogout, onRead }) {
     <div className="stack">
       {user.isMember && ns && (
         <div className="stats">
-          <div><b>{ns.signups}</b><span>지난 신청</span></div>
-          <div><b className={ns.total ? 'neg' : ''}>{ns.total}</b><span>노쇼 (전체)</span></div>
-          <div><b className={ns.last90 >= summary.noShowThreshold ? 'neg' : ''}>{ns.last90}</b><span>노쇼 (90일)</span></div>
+          <div><b>{ns.signups}</b><span>{t('pastSignups')}</span></div>
+          <div><b className={ns.total ? 'neg' : ''}>{ns.total}</b><span>{t('noShowTotal')}</span></div>
+          <div><b className={ns.last90 >= summary.noShowThreshold ? 'neg' : ''}>{ns.last90}</b><span>{t('noShow90')}</span></div>
         </div>
       )}
       <PushToggle />
       <section className="card">
-        <h3>알림</h3>
+        <h3>{t('notifications')}</h3>
         <ul className="list">
-          {notes.map((n) => (
+          {notes.map((n) => {
+            const { title, body } = renderNotification(n, t.lang);
+            return (
             <li key={n.id} className={n.read ? '' : 'unread'}>
-              <b>{n.title}</b>{n.body && <p className="small">{n.body}</p>}
+              <b>{title}</b>{body && <p className="small">{body}</p>}
               <span className="small muted">{n.createdAt.slice(0, 16)}</span>
             </li>
-          ))}
-          {!notes.length && <li className="muted">알림이 없어요.</li>}
+            );
+          })}
+          {!notes.length && <li className="muted">{t('noNotifications')}</li>}
         </ul>
       </section>
       {user.isMember && (
         <section className="card">
-          <h3>내 신청 기록</h3>
+          <h3>{t('myHistory')}</h3>
           <ul className="list">
             {hist.map((h) => (
               <li key={h.date} className="row between">
-                <span>{fmtDay(h.date)}{h.guests ? ` +손님 ${h.guests}` : ''}</span>
+                <span>{fmtDay(h.date, t.lang)}</span>
                 <span className={h.attended ? 'ok' : h.closed ? 'err' : 'muted'}>
-                  {h.attended ? '출석' : h.closed ? '노쇼' : h.phase === 'today' ? '오늘' : '예정'}
+                  {h.attended ? t('attended') : h.closed ? t('noShow') : h.phase === 'today' ? t('phase_today') : t('upcoming')}
                 </span>
               </li>
             ))}
-            {!hist.length && <li className="muted">아직 신청한 적이 없어요.</li>}
+            {!hist.length && <li className="muted">{t('neverSigned')}</li>}
           </ul>
         </section>
       )}
       {user.isAdmin && (
         <details className="card">
-          <summary>관리자 비밀번호 변경</summary>
+          <summary>{t('changeAdminPw')}</summary>
           <ChangePassword />
         </details>
       )}
-      <button className="link" onClick={() => api('/auth/logout', { method: 'POST' }).then(onLogout)}>로그아웃 ({user.name})</button>
+      <button className="link" onClick={() => api('/auth/logout', { method: 'POST' }).then(onLogout)}>{t('logout', { name: user.name })}</button>
     </div>
   );
 }
 
 export function ChangePassword({ onDone, first = false }) {
+  const t = useT();
   const [f, setF] = useState({ current: '', next: '', next2: '' });
   const [msg, setMsg] = useState(null);
   async function submit(e) {
     e.preventDefault();
     try {
-      if (f.next !== f.next2) throw new Error('새 비밀번호 확인이 달라요.');
+      if (f.next !== f.next2) throw new Error(t('pwMismatch'));
       await api('/me/password', { method: 'POST', body: f });
-      setMsg({ ok: true, text: '바꿨어요.' });
+      setMsg({ ok: true, text: t('changed') });
       setF({ current: '', next: '', next2: '' });
       onDone?.();
     } catch (err) { setMsg({ ok: false, text: err.message }); }
@@ -79,11 +85,11 @@ export function ChangePassword({ onDone, first = false }) {
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
   return (
     <form className="form" onSubmit={submit}>
-      <label>현재 비밀번호{first ? ' (처음 정하는 거면 비워 두세요)' : ''}<input type="password" value={f.current} onChange={set('current')} required={!first} autoComplete="current-password" /></label>
-      <label>새 비밀번호 (숫자 4자리 이상)<input type="password" value={f.next} onChange={set('next')} required minLength={4} inputMode="numeric" autoComplete="new-password" /></label>
-      <label>새 비밀번호 확인<input type="password" value={f.next2} onChange={set('next2')} required autoComplete="new-password" /></label>
+      <label>{first ? t('currentPwFirst') : t('currentPw')}<input type="password" value={f.current} onChange={set('current')} required={!first} autoComplete="current-password" /></label>
+      <label>{t('newPw')}<input type="password" value={f.next} onChange={set('next')} required minLength={4} autoComplete="new-password" /></label>
+      <label>{t('newPw2')}<input type="password" value={f.next2} onChange={set('next2')} required autoComplete="new-password" /></label>
       {msg && <p className={msg.ok ? 'ok' : 'err'}>{msg.text}</p>}
-      <button className="primary">변경</button>
+      <button className="primary">{t('change')}</button>
     </form>
   );
 }
@@ -95,6 +101,7 @@ function urlB64ToUint8Array(b64) {
 }
 
 function PushToggle() {
+  const t = useT();
   const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   const [state, setState] = useState(supported ? Notification.permission : 'unsupported');
   const [msg, setMsg] = useState(null);
@@ -110,23 +117,23 @@ function PushToggle() {
       const { key } = await api('/push/key');
       const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8Array(key) });
       await api('/push/subscribe', { method: 'POST', body: sub.toJSON() });
-      setMsg('이 기기에서 알림을 받아요.');
-    } catch (e) { setMsg(`알림 설정 실패: ${e.message}`); }
+      setMsg(t('pushDone'));
+    } catch (e) { setMsg(t('pushFail', { e: e.message })); }
   }
 
   if (state === 'unsupported') {
     return (
       <div className="notice small">
         {isIos && !standalone
-          ? '아이폰은 Safari 공유 버튼 → "홈 화면에 추가"로 앱을 설치하면 휴대폰 알림을 받을 수 있어요.'
-          : '이 브라우저는 휴대폰 알림을 지원하지 않아요. 알림은 이 화면에서 확인할 수 있어요.'}
+          ? t('pushIos')
+          : t('pushUnsupported')}
       </div>
     );
   }
   return (
     <div className="notice small row between">
-      <span>{state === 'granted' ? (msg || '휴대폰 알림이 켜져 있어요.') : '마감 리마인드, 메뉴, 노쇼 알림을 휴대폰으로 받아보세요.'}</span>
-      {state === 'granted' ? <button className="link" onClick={enable}>다시 연결</button> : <button className="primary" onClick={enable}>알림 켜기</button>}
+      <span>{state === 'granted' ? (msg || t('pushOn')) : t('pushPrompt')}</span>
+      {state === 'granted' ? <button className="link" onClick={enable}>{t('pushReconnect')}</button> : <button className="primary" onClick={enable}>{t('pushEnable')}</button>}
     </div>
   );
 }

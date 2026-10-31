@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { addDays, api, fmtDay, weekdayOf } from './api.js';
+import { api } from './api.js';
+import { monthTitle, useT, weekdayNames, weekdayOf } from './i18n.js';
 import DayPanel from './DayPanel.jsx';
 
 const shiftMonth = (m, n) => {
@@ -9,6 +10,7 @@ const shiftMonth = (m, n) => {
 };
 
 export default function Calendar({ user, summary, onChange }) {
+  const t = useT();
   const [month, setMonth] = useState(null);
   const [data, setData] = useState(null);
   const [open, setOpen] = useState(null);
@@ -20,28 +22,24 @@ export default function Calendar({ user, summary, onChange }) {
   useEffect(() => { load(); }, [load]);
 
   if (err) return <p className="err">{err}</p>;
-  if (!data) return <p className="muted">불러오는 중…</p>;
+  if (!data) return <p className="muted">{t('loading')}</p>;
 
   const lead = weekdayOf(data.days[0].date);
   const cells = [...Array(lead).fill(null), ...data.days];
-  const firstOpen = addDays(data.today, summary?.deadlineDays ?? 7);
 
   return (
     <div>
+      <div className="deadline-note">⏰ {t('deadlineNotice')}</div>
       {summary?.noShows?.last90 >= summary?.noShowThreshold && (
-        <div className="notice warn">최근 90일 노쇼가 {summary.noShows.last90}회예요. 신청하신 날은 꼭 드시거나 마감 전에 취소해 주세요.</div>
+        <div className="notice warn">{t('noShowWarn', { n: summary.noShows.last90 })}</div>
       )}
       <div className="monthbar">
-        <button onClick={() => load(shiftMonth(month, -1))} aria-label="이전 달">‹</button>
-        <h2>{Number(month.slice(0, 4))}년 {Number(month.slice(5))}월</h2>
-        <button onClick={() => load(shiftMonth(month, 1))} aria-label="다음 달">›</button>
+        <button onClick={() => load(shiftMonth(month, -1))} aria-label={t('prevMonth')}>‹</button>
+        <h2>{monthTitle(month, t.lang)}</h2>
+        <button onClick={() => load(shiftMonth(month, 1))} aria-label={t('nextMonth')}>›</button>
       </div>
-      <p className="small muted center">
-        식사일 {summary?.deadlineDays ?? 7}일 전 23:59에 마감돼요.
-        {user.isMember ? ` 지금은 ${fmtDay(firstOpen)}부터 신청할 수 있어요.` : ''}
-      </p>
       <div className="cal">
-        {['일', '월', '화', '수', '목', '금', '토'].map((w) => <div key={w} className="wd">{w}</div>)}
+        {weekdayNames(t.lang).map((w) => <div key={w} className="wd">{w}</div>)}
         {cells.map((d, i) => d ? (
           <button
             key={d.date}
@@ -51,8 +49,8 @@ export default function Calendar({ user, summary, onChange }) {
             <span className="num">{Number(d.date.slice(8))}</span>
             {d.mealDay ? (
               <>
-                <span className="count">{d.total}<small>명</small></span>
-                {d.mine && <span className="me">✓{d.mine.guests ? `+${d.mine.guests}` : ''}</span>}
+                <span className="count">{d.total}<small>{t.lang === 'ko' ? '명' : ''}</small></span>
+                {(d.mine || d.myGuests > 0) && <span className="me">{d.mine ? '✓' : ''}{d.myGuests ? `+${d.myGuests}` : ''}</span>}
                 {d.menu && <span className="menu">{d.menu.title}</span>}
               </>
             ) : <span className="note">{d.note || ''}</span>}
@@ -60,13 +58,14 @@ export default function Calendar({ user, summary, onChange }) {
         ) : <div key={`b${i}`} />)}
       </div>
       <div className="legend small">
-        <span><i className="sw open" />신청 가능</span>
-        <span><i className="sw confirmed" />인원 확정</span>
-        <span><i className="sw mine" />내가 신청</span>
+        <span><i className="sw open" />{t('legendOpen')}</span>
+        <span><i className="sw confirmed" />{t('legendConfirmed')}</span>
+        <span><i className="sw mine" />{t('legendMine')}</span>
       </div>
+      <p className="small muted center">{t('tzNote')}</p>
       {open && (
         <DayPanel
-          date={open} user={user}
+          date={open} user={user} summary={summary}
           onClose={() => setOpen(null)}
           onChange={() => { load(month); onChange(); }}
         />

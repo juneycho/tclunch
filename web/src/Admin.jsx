@@ -1,13 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { api, won } from './api.js';
+import { api, vnToday } from './api.js';
+import { money, useT } from './i18n.js';
 
 export default function Admin({ user, onChange }) {
+  const t = useT();
   const [sec, setSec] = useState('users');
   return (
     <div className="stack">
       <nav className="subtabs">
-        {[['users', '직원'], ['noshow', '노쇼'], ['budget', '예산'], ['settings', '설정'], ['audit', '기록']].map(([k, l]) => (
-          <button key={k} className={sec === k ? 'on' : ''} onClick={() => setSec(k)}>{l}</button>
+        {[['users', 'adminUsers'], ['noshow', 'adminNoShows'], ['budget', 'adminBudget'], ['settings', 'adminSettings'], ['audit', 'adminAudit']].map(([k, l]) => (
+          <button key={k} className={sec === k ? 'on' : ''} onClick={() => setSec(k)}>{t(l)}</button>
         ))}
       </nav>
       {sec === 'users' && <Users me={user} />}
@@ -20,6 +22,7 @@ export default function Admin({ user, onChange }) {
 }
 
 function Users({ me }) {
+  const t = useT();
   const [users, setUsers] = useState([]);
   const [msg, setMsg] = useState(null);
   const load = useCallback(() => api('/admin/users').then((r) => setUsers(r.users)), []);
@@ -27,71 +30,55 @@ function Users({ me }) {
 
   const patch = (u, body) => api(`/admin/users/${u.id}`, { method: 'PATCH', body }).then(load).catch((e) => setMsg({ ok: false, text: e.message }));
   async function reset(u) {
-    if (!window.confirm(`${u.name}님 비밀번호를 초기화할까요?`)) return;
+    if (!window.confirm(t('confirmResetPw', { name: u.name }))) return;
     const r = await api(`/admin/users/${u.id}/reset-password`, { method: 'POST' }).catch((e) => { setMsg({ ok: false, text: e.message }); return null; });
     if (!r) return;
-    setMsg({ ok: true, text: `${u.name}님 임시 비밀번호: ${r.tempPassword} (본인에게 직접 전달해 주세요. 첫 로그인 때 바꾸게 돼요.)` });
+    setMsg({ ok: true, text: t('tempPwMsg', { name: u.name, pw: r.tempPassword }) });
   }
 
-  const pending = users.filter((u) => u.status === 'pending');
   const rest = users.filter((u) => u.status !== 'pending');
   return (
     <>
       {msg && <p className={msg.ok ? 'ok notice' : 'err'}>{msg.text}</p>}
-      {pending.length > 0 && (
-        <section className="card">
-          <h3>가입 승인 대기 {pending.length}명</h3>
-          <ul className="list">
-            {pending.map((u) => (
-              <li key={u.id} className="row between">
-                <span>{u.name}</span>
-                <span className="row gap">
-                  <button className="primary" onClick={() => patch(u, { status: 'active' })}>승인</button>
-                  <button className="link" onClick={() => patch(u, { status: 'inactive' })}>거절</button>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
       <section className="card">
-        <h3>직원 {rest.filter((u) => u.status === 'active').length}명</h3>
-        <p className="small muted">전출 가면 "비활성"으로 바꾸세요. 로그인이 막히고 마감 전 신청은 자동으로 지워져요. 기록은 남아요.</p>
+        <h3>{t('staffCount', { n: rest.filter((u) => u.status === 'active').length })}</h3>
+        <p className="small muted">{t('usersHint')}</p>
         <div className="table">
-          <div className="tr th"><span>이름</span><span>식사</span><span>요리사</span><span>관리자</span><span>상태</span><span /></div>
+          <div className="tr th"><span>{t('colName')}</span><span>{t('colEats')}</span><span>{t('colCook')}</span><span>{t('colAdmin')}</span><span>{t('colStatus')}</span><span /></div>
           {rest.map((u) => (
             <div key={u.id} className={`tr ${u.status}`}>
               <span>{u.name}</span>
-              <span><input type="checkbox" checked={u.isMember} onChange={(e) => patch(u, { isMember: e.target.checked })} aria-label="식사 신청 대상" /></span>
-              <span><input type="checkbox" checked={u.isCook} onChange={(e) => patch(u, { isCook: e.target.checked })} aria-label="요리사" /></span>
-              <span><input type="checkbox" checked={u.isAdmin} disabled={u.id === me.id} onChange={(e) => patch(u, { isAdmin: e.target.checked })} aria-label="관리자" /></span>
+              <span><input type="checkbox" checked={u.isMember} onChange={(e) => patch(u, { isMember: e.target.checked })} aria-label={t('colEats')} /></span>
+              <span><input type="checkbox" checked={u.isCook} onChange={(e) => patch(u, { isCook: e.target.checked })} aria-label={t('colCook')} /></span>
+              <span><input type="checkbox" checked={u.isAdmin} disabled={u.id === me.id} onChange={(e) => patch(u, { isAdmin: e.target.checked })} aria-label={t('colAdmin')} /></span>
               <span>
                 <select value={u.status} disabled={u.id === me.id} onChange={(e) => patch(u, { status: e.target.value })}>
-                  <option value="active">재직</option><option value="inactive">비활성</option>
+                  <option value="active">{t('active')}</option><option value="inactive">{t('inactive')}</option>
                 </select>
               </span>
-              <span>{u.isAdmin && u.id !== me.id ? <button className="link small" onClick={() => reset(u)}>비번<br />초기화</button> : null}</span>
+              <span>{u.isAdmin && u.id !== me.id ? <button className="link small" onClick={() => reset(u)}>{t('resetPw')}</button> : null}</span>
             </div>
           ))}
         </div>
       </section>
       <section className="card">
-        <h3>새 직원 등록</h3>
-        <p className="small muted">새로 오신 분께 앱 주소만 알려 주세요. 이름만 쓰면 바로 등록돼요. 잘못 만든 이름은 "비활성"으로 바꾸면 돼요. 관리자만 비밀번호로 들어와요. 다른 사람을 관리자로 지정했다면 "비번 초기화"로 임시 비밀번호를 만들어 알려 주세요.</p>
+        <h3>{t('newStaffTitle')}</h3>
+        <p className="small muted">{t('newStaffHint')}</p>
       </section>
     </>
   );
 }
 
 function NoShows() {
+  const t = useT();
   const [rows, setRows] = useState([]);
   useEffect(() => { api('/admin/noshows').then((r) => setRows(r.rows)); }, []);
   return (
     <section className="card">
-      <h3>노쇼 현황</h3>
-      <p className="small muted">신청하고 출석 체크가 안 된 끼니예요. 착오가 있으면 달력에서 그날을 눌러 출석으로 바꿔 주세요.</p>
+      <h3>{t('noShowsTitle')}</h3>
+      <p className="small muted">{t('noShowsHint')}</p>
       <div className="table">
-        <div className="tr th"><span>이름</span><span>신청</span><span>노쇼</span><span>90일</span></div>
+        <div className="tr th"><span>{t('colName')}</span><span>{t('colSignups')}</span><span>{t('colNoShows')}</span><span>{t('col90')}</span></div>
         {rows.map((r) => (
           <div key={r.id} className={`tr ${r.status}`}>
             <span>{r.name}</span><span>{r.signups}</span>
@@ -105,8 +92,9 @@ function NoShows() {
 }
 
 function Budgets({ onChange }) {
+  const t = useT();
   const [list, setList] = useState([]);
-  const ym = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 7);
+  const ym = vnToday().slice(0, 7);
   const lastDay = (m) => new Date(Date.UTC(+m.slice(0, 4), +m.slice(5), 0)).toISOString().slice(0, 10);
   const [f, setF] = useState({ startDate: `${ym}-01`, endDate: lastDay(ym), amount: '', note: '' });
   const [err, setErr] = useState(null);
@@ -124,24 +112,24 @@ function Budgets({ onChange }) {
   }
   return (
     <section className="card">
-      <h3>식비 예산</h3>
-      <p className="small muted">기간별 총예산을 넣으면 맨 위에 총예산/사용/남은 예산이 보여요. 지출은 요리사 탭에서 입력해요.</p>
+      <h3>{t('budgetTitle')}</h3>
+      <p className="small muted">{t('budgetHint')}</p>
       <form className="row gap wrap" onSubmit={save}>
         <input type="date" value={f.startDate} onChange={(e) => setF({ ...f, startDate: e.target.value })} required />
         <span>~</span>
         <input type="date" value={f.endDate} onChange={(e) => setF({ ...f, endDate: e.target.value })} required />
-        <input inputMode="numeric" placeholder="예산(원)" value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} required />
-        <input placeholder="메모" value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} />
-        <button className="primary">{f.id ? '수정' : '추가'}</button>
+        <input inputMode="numeric" placeholder={`${t('budgetAmount')} (VND)`} value={f.amount} onChange={(e) => setF({ ...f, amount: e.target.value })} required />
+        <input placeholder={t('memo')} value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} />
+        <button className="primary">{f.id ? t('edit') : t('add')}</button>
       </form>
       {err && <p className="err">{err}</p>}
       <ul className="list">
         {list.map((b) => (
           <li key={b.id} className="row between">
             <span>{b.startDate} ~ {b.endDate} {b.note && <small className="muted">{b.note}</small>}</span>
-            <span>{won(b.amount)}{' '}
-              <button className="link small" onClick={() => setF({ ...b, amount: String(b.amount), note: b.note || '' })}>수정</button>
-              <button className="link small" onClick={() => window.confirm('이 예산을 지울까요?') && api(`/admin/budgets/${b.id}`, { method: 'DELETE' }).then(load).then(onChange)}>삭제</button>
+            <span>{money(b.amount)}{' '}
+              <button className="link small" onClick={() => setF({ ...b, amount: String(b.amount), note: b.note || '' })}>{t('edit')}</button>
+              <button className="link small" onClick={() => window.confirm(t('confirmDeleteBudget')) && api(`/admin/budgets/${b.id}`, { method: 'DELETE' }).then(load).then(onChange)}>{t('remove')}</button>
             </span>
           </li>
         ))}
@@ -151,48 +139,53 @@ function Budgets({ onChange }) {
 }
 
 function Settings() {
+  const t = useT();
   const [s, setS] = useState(null);
   const [msg, setMsg] = useState(null);
   useEffect(() => { api('/admin/settings').then(setS); }, []);
   if (!s) return null;
   const fields = [
-    ['deadline_days', '신청 마감 (식사일 며칠 전)', '일 전'],
-    ['attendance_close_hour', '출석 체크 마감 시각 (이후 미체크는 노쇼)', '시'],
-    ['noshow_threshold', '관리자에게 알릴 노쇼 횟수 (최근 90일)', '회'],
-    ['reminder_hour', '마감 전날 리마인드 시각', '시'],
-    ['max_guests', '1인당 최대 손님 수', '명'],
+    ['deadline_weekday', 'setDeadlineWeekday', ''],
+    ['deadline_hour', 'setDeadlineHour', 'unitHour'],
+    ['meal_price', 'setMealPrice', ''],
+    ['attendance_close_hour', 'setAttendanceClose', 'unitHour'],
+    ['noshow_threshold', 'setNoShowThreshold', 'unitTimes'],
+    ['reminder_hour', 'setReminderHour', 'unitHour'],
+    ['max_guests', 'setMaxGuests', 'unitPeople'],
   ];
   async function save(e) {
     e.preventDefault();
     try {
       const body = Object.fromEntries(fields.map(([k]) => [k, Number(s[k])]));
       setS(await api('/admin/settings', { method: 'PUT', body }));
-      setMsg({ ok: true, text: '저장했어요.' });
+      setMsg({ ok: true, text: t('saved') });
     } catch (err) { setMsg({ ok: false, text: err.message }); }
   }
   return (
     <form className="card form" onSubmit={save}>
-      <h3>설정</h3>
+      <h3>{t('settingsTitle')}</h3>
+      <p className="small muted">{t('tzNote')}</p>
       {fields.map(([k, label, unit]) => (
-        <label key={k}>{label}
-          <span className="row gap"><input type="number" value={s[k]} onChange={(e) => setS({ ...s, [k]: e.target.value })} className="short" />{unit}</span>
+        <label key={k}>{t(label)}
+          <span className="row gap"><input type="number" value={s[k] ?? ''} onChange={(e) => setS({ ...s, [k]: e.target.value })} className={k === 'meal_price' ? '' : 'short'} />{unit && t(unit)}</span>
         </label>
       ))}
       {msg && <p className={msg.ok ? 'ok' : 'err'}>{msg.text}</p>}
-      <button className="primary">저장</button>
+      <button className="primary">{t('save')}</button>
     </form>
   );
 }
 
 function Audit() {
+  const t = useT();
   const [rows, setRows] = useState([]);
   useEffect(() => { api('/admin/audit').then((r) => setRows(r.rows)); }, []);
   return (
     <section className="card">
-      <h3>변경 기록</h3>
+      <h3>{t('auditTitle')}</h3>
       <ul className="list small">
         {rows.map((r) => <li key={r.id}><b>{r.actor}</b> {r.action} <span className="muted">{r.createdAt}</span><br /><code>{r.detail}</code></li>)}
-        {!rows.length && <li className="muted">기록이 없어요.</li>}
+        {!rows.length && <li className="muted">{t('noAudit')}</li>}
       </ul>
     </section>
   );

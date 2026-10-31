@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { api } from './api.js';
+import { useT } from './i18n.js';
+import { Brand, LangPicker } from './Brand.jsx';
 
 // 이름만 쓰고 들어가기. 처음 쓰는 이름이면 자동 등록. 관리자 이름일 때만 비밀번호를 묻는다.
 export default function Login({ onLogin }) {
+  const t = useT();
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [needPw, setNeedPw] = useState(false);
@@ -24,21 +27,19 @@ export default function Login({ onLogin }) {
 
   return (
     <div className="page narrow pad">
-      <div className="hero">
-        <img src="/icon.svg" alt="" width="64" height="64" />
-        <h1>TC 점심</h1>
-        <p className="muted">점심 신청은 식사일 1주일 전에 마감돼요.</p>
-      </div>
+      <div className="row login-lang"><LangPicker /></div>
+      <Brand />
+      <div className="deadline-note">⏰ {t('deadlineNotice')}</div>
       <form className="card form" onSubmit={submit}>
-        <label>이름<input value={name} onChange={(e) => { setName(e.target.value); setNeedPw(false); }} required maxLength={10}
-          placeholder="홍길동" autoComplete="username" autoFocus /></label>
+        <label>{t('name')}<input value={name} onChange={(e) => { setName(e.target.value); setNeedPw(false); }} required maxLength={10}
+          placeholder={t('namePlaceholder')} autoComplete="username" autoFocus /></label>
         {needPw && (
-          <label>관리자 비밀번호<input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+          <label>{t('adminPassword')}<input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
             required autoComplete="current-password" autoFocus /></label>
         )}
-        <p className="small muted">{needPw ? '관리자 계정이라 비밀번호가 필요해요.' : '처음이면 이름만 쓰면 바로 등록돼요. 같은 이름이 있으면 \'김민수2\'처럼 구분해 주세요.'}</p>
+        <p className="small muted">{needPw ? t('adminPwHint') : t('loginHint')}</p>
         {msg && <p className="err">{msg}</p>}
-        <button className="primary" disabled={busy}>{busy ? '들어가는 중…' : '들어가기'}</button>
+        <button className="primary" disabled={busy}>{busy ? t('entering') : t('enter')}</button>
       </form>
     </div>
   );
