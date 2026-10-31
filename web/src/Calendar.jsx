@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { api } from './api.js';
-import { fmtDay, monthTitle, useT, weekdayNames, weekdayOf } from './i18n.js';
+import { deadlineParts, fmtDay, monthTitle, useT, weekdayNames, weekdayOf } from './i18n.js';
 import DayPanel from './DayPanel.jsx';
 import MyDay from './MyDay.jsx';
 
@@ -43,7 +43,7 @@ export default function Calendar({ user, summary, onChange }) {
   const cells = [...Array(lead).fill(null), ...data.days];
   const q = quick && data.days.find((d) => d.date === quick);
   const closedText = (d) => (!d.mealDay ? `${t('noLunch')}${d.note ? ` (${d.note})` : ''}`
-    : d.phase === 'confirmed' || d.phase === 'today' ? t('closedDay', { d: fmtDay(d.deadline, t.lang), h: summary?.deadlineHour ?? 17 })
+    : d.phase === 'confirmed' || d.phase === 'today' ? t('closedDay', deadlineParts(d, t.lang, summary?.deadlineHour))
       : t('pastDay'));
 
   return (
@@ -68,6 +68,7 @@ export default function Calendar({ user, summary, onChange }) {
               <>
                 <span className="count">{d.total}<small>{t.lang === 'ko' ? '명' : ''}</small></span>
                 {myCount(d) > 0 && <span className="me">✓{myCount(d)}</span>}
+                {d.phase === 'confirmed' && <span className="closed-tag">{t('closedShort')}</span>}
               </>
             ) : <span className="note">{d.note || ''}</span>}
           </button>
@@ -76,6 +77,7 @@ export default function Calendar({ user, summary, onChange }) {
       <div className="legend small">
         <span><i className="sw open" />{t('legendOpen')}</span>
         <span><i className="sw confirmed" />{t('legendClosed')}</span>
+        <span><i className="sw past" />{t('phase_past')}</span>
         <span><i className="sw mine" />{t('legendMine')}</span>
       </div>
       <p className="small muted center">{t('tzNote')}</p>

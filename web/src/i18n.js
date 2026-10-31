@@ -55,7 +55,7 @@ const D = {
   dayLunch: { ko: '{d} 점심', en: 'Lunch · {d}', vi: 'Bữa trưa {d}' },
   close: { ko: '닫기', en: 'Close', vi: 'Đóng' },
   noLunch: { ko: '이날은 점심 운영을 하지 않아요', en: 'No lunch on this day', vi: 'Không có bữa trưa ngày này' },
-  closesAt: { ko: '{d} {h}:00 마감', en: 'Closes {d} {h}:00', vi: 'Hạn {h}:00 {d}' },
+  closesAt: { ko: '{d} {h} 마감', en: 'Closes {d} {h}', vi: 'Hạn {h} {d}' },
   total: { ko: '총 인원', en: 'Total', vi: 'Tổng' },
   staff: { ko: '직원', en: 'Staff', vi: 'Nhân viên' },
   guests: { ko: '손님', en: 'Guests', vi: 'Khách' },
@@ -187,7 +187,8 @@ const D = {
   promptIosBody: { ko: '1. Safari 아래쪽 공유 버튼(□↑)을 누르세요.\n2. "홈 화면에 추가"를 누르세요.\n3. 홈 화면에 생긴 아이콘으로 앱을 열면 알림 켜기 창이 떠요.', en: '1. Tap the Share button (□↑) at the bottom of Safari.\n2. Tap "Add to Home Screen".\n3. Open the app from the new home-screen icon and you will be asked to turn on notifications.', vi: '1. Bấm nút Chia sẻ (□↑) ở dưới Safari.\n2. Bấm "Thêm vào MH chính".\n3. Mở ứng dụng từ biểu tượng mới, sẽ có hỏi bật thông báo.' },
   tapHint: { ko: '흰색 날짜를 한 번 누르면 1명, 두 번 누르면 2명(손님 포함)이 신청돼요. 줄일 때는 아래 −를 누르세요.', en: 'Tap a white date once for 1 person, twice for 2 (incl. guests). Use − below to reduce.', vi: 'Chạm ngày màu trắng 1 lần = 1 người, 2 lần = 2 người (gồm khách). Bấm − ở dưới để giảm.' },
   myCount: { ko: '내 신청', en: 'Mine', vi: 'Của tôi' },
-  closedDay: { ko: '마감된 날이에요 ({d} {h}:00 마감)', en: 'Closed (deadline was {d} {h}:00)', vi: 'Đã chốt (hạn {h}:00 {d})' },
+  closedDay: { ko: '마감된 날이에요 ({d} {h} 마감)', en: 'Closed (deadline was {d} {h})', vi: 'Đã chốt (hạn {h} {d})' },
+  closedShort: { ko: '마감', en: 'Closed', vi: 'Chốt' },
   pastDay: { ko: '지난 날이에요', en: 'This day has passed', vi: 'Ngày đã qua' },
   legendClosed: { ko: '마감', en: 'Closed', vi: 'Đã chốt' },
   historyTitle: { ko: '내역', en: 'History', vi: 'Lịch sử' },
@@ -332,6 +333,11 @@ export function fmtDay(date, lang) {
 export function monthTitle(month, lang) {
   const [y, m] = month.split('-');
   return translate(lang, 'monthTitle', { y, m: Number(m), mon: MONTHS_EN[Number(m) - 1] });
+}
+// 마감 일시 'YYYY-MM-DD HH:MM' → { d: 요일 붙은 날짜, h: 'HH:MM' }
+export function deadlineParts(d, lang, fallbackHour = 17) {
+  if (d.deadlineAt) return { d: fmtDay(d.deadlineAt.slice(0, 10), lang), h: d.deadlineAt.slice(11, 16) };
+  return { d: fmtDay(d.deadline, lang), h: `${fallbackHour}:00` };
 }
 export const money = (n) => `VND ${Number(n || 0).toLocaleString('en-US')}`;
 

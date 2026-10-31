@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { api } from './api.js';
-import { fmtDay, useT } from './i18n.js';
+import { deadlineParts, fmtDay, useT } from './i18n.js';
 import MyDay from './MyDay.jsx';
 
 // 사람별 인원: 본인 신청 1 + 그 사람이 추가한 손님
@@ -51,7 +51,7 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
           <>
             <div className="row gap wrap">
               <span className={`badge ${d.phase}`}>{t(`phase_${d.phase}`)}</span>
-              {d.phase === 'open' && <span className="small muted">{t('closesAt', { d: fmtDay(d.deadline, t.lang), h: summary?.deadlineHour ?? 17 })}</span>}
+              {d.phase === 'open' && <span className="small muted">{t('closesAt', deadlineParts(d, t.lang, summary?.deadlineHour))}</span>}
             </div>
             <div className="stats">
               <div><b>{d.total}</b><span>{t('total')}</span></div>
