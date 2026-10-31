@@ -24,16 +24,10 @@ export default function Calendar({ user, summary, onChange }) {
     .then((r) => { setData(r); setMonth(r.month); }).catch((e) => setErr(e.message)), []);
   useEffect(() => { load(); }, [load]);
 
-  // 흰색(신청 가능) 날짜를 누를 때마다 내 인원 +1. 다른 날은 안내만 보여 준다.
-  async function tap(d) {
+  // 날짜를 누르면 아래 칸이 열린다. 인원을 정하고 '확인'을 눌러야 신청된다.
+  function tap(d) {
     setQuick(d.date);
     setMsg(null);
-    if (!d.mealDay || d.phase !== 'open') return;
-    try {
-      await api(`/days/${d.date}/tap`, { method: 'POST' });
-      await load(month);
-      onChange();
-    } catch (e) { setMsg(e.message); }
   }
 
   if (err) return <p className="err">{err}</p>;
@@ -91,7 +85,7 @@ export default function Calendar({ user, summary, onChange }) {
             </span>
           </div>
           {q.mealDay && q.phase === 'open'
-            ? <MyDay date={q.date} count={myCount(q)} onDone={async () => { setMsg(null); await load(month); onChange(); }} />
+            ? <MyDay date={q.date} count={myCount(q)} onDone={async () => { await load(month); onChange(); }} />
             : <p className="small muted">{closedText(q)}{myCount(q) ? ` · ${t('myCount')} ${t('peopleLong', { n: myCount(q) })}` : ''}</p>}
           {msg && <p className="err small">{msg}</p>}
         </div>
