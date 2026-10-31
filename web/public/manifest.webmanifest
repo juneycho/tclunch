@@ -1,13 +1,11 @@
 {
-  "name": "TC 점심",
-  "short_name": "TC 점심",
+  "name": "Thanh Cong Lunch Request",
+  "short_name": "TC Lunch",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f6f7f5",
-  "theme_color": "#16a34a",
-  "lang": "ko",
+  "background_color": "#ffffff",
+  "theme_color": "#213d86",
   "icons": [
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" },
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
