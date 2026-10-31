@@ -60,7 +60,7 @@ function Main() {
         <img src="/logo.png" alt="Thanh Cong" className="logo" />
         <div className="grow">
           <h1 className="title">Thanh Cong Lunch Request</h1>
-          <div className="who">{t('hello', { name: user.name })}</div>
+          <div className="who">{t('hello', { name: user.name })} · <button className="link logout" onClick={() => api('/auth/logout', { method: 'POST' }).then(() => setUser(null))}>{t('logoutShort')}</button></div>
         </div>
         <LangPicker compact />
         <button className={`iconbtn${tab === 'my' ? ' on' : ''}`} onClick={() => setTab('my')} aria-label={t('tabMy')}>

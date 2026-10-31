@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { api } from './api.js';
 import { fmtDay, useT } from './i18n.js';
+import MyDay from './MyDay.jsx';
 
 export default function DayPanel({ date, user, summary, onClose, onChange }) {
   const t = useT();
@@ -23,7 +24,6 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
     } catch (e) { setMsg({ ok: false, text: e.message }); return false; } finally { setBusy(false); }
   }
 
-  const canAddGuests = d?.mealDay && (d.phase === 'open' || (user.isAdmin && d.phase !== 'past'));
   const day = fmtDay(date, t.lang);
 
   return (
@@ -50,27 +50,13 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
               <div className="card menu-card"><span className="label">{t('menu')}</span><b>{d.menu.title}</b>{d.menu.description && <p>{d.menu.description}</p>}</div>
             ) : d.phase !== 'open' && <p className="small muted">{t('noMenuYet')}</p>}
 
-            {user.isMember && d.phase === 'open' && (
-              <div className={`card mycard${d.mine ? ' on' : ''}`}>
-                <span className="label">{t('myLunch')}</span>
-                {d.mine ? (
-                  <div className="row between">
-                    <b className="ok">{t('signedUp')}</b>
-                    <button className="danger" disabled={busy}
-                      onClick={() => act(() => api(`/days/${date}/signup`, { method: 'DELETE' }), t('didCancel'))}>{t('cancelMine')}</button>
-                  </div>
-                ) : (
-                  <button className="primary big" disabled={busy}
-                    onClick={() => act(() => api(`/days/${date}/signup`, { method: 'PUT' }), t('didSignUp'))}>{t('signUpMe')}</button>
-                )}
-              </div>
+            {d.phase === 'open' && (
+              <div className="card"><MyDay date={date} mine={!!d.mine} myGuests={d.myGuests} isMember={user.isMember} onDone={async () => { await load(); onChange(); }} /></div>
             )}
             {user.isMember && d.phase === 'confirmed' && (
               <p className="small muted">{d.mine ? `${t('signedUpClosed')} ` : ''}{t('closedChange')}</p>
             )}
             {msg && <p className={msg.ok ? 'ok' : 'err'}>{msg.text}</p>}
-
-            {canAddGuests && <AddGuests date={date} max={summary?.maxGuests ?? 20} busy={busy} act={act} />}
 
             <h3>{t('attendees', { n: d.roster.length })}</h3>
             <ul className="roster">
@@ -108,33 +94,6 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
         )}
         {(user.isAdmin || user.isCook) && d && <DayOverride date={date} d={d} act={act} />}
       </div>
-    </div>
-  );
-}
-
-// 외부 손님: 내 신청과 완전히 따로. 이 버튼은 나를 넣지 않는다.
-function AddGuests({ date, max, busy, act }) {
-  const t = useT();
-  const [count, setCount] = useState(1);
-  const [note, setNote] = useState('');
-  async function add() {
-    const ok = await act(() => api(`/days/${date}/guests`, { method: 'POST', body: { count, note } }), t('didAddGuests', { n: count }));
-    if (ok) { setCount(1); setNote(''); }
-  }
-  return (
-    <div className="card guestcard">
-      <span className="label">{t('guestsTitle')}</span>
-      <p className="small muted">{t('guestsHint')}</p>
-      <div className="row between">
-        <span>{t('guests')}</span>
-        <div className="stepper">
-          <button onClick={() => setCount(Math.max(1, count - 1))} aria-label={t('fewer')}>−</button>
-          <span>{t('peopleLong', { n: count })}</span>
-          <button onClick={() => setCount(Math.min(max, count + 1))} aria-label={t('more')}>+</button>
-        </div>
-      </div>
-      <input placeholder={t('guestNote')} value={note} maxLength={50} onChange={(e) => setNote(e.target.value)} />
-      <button className="accent" disabled={busy} onClick={add}>{t('addGuestsBtn', { n: count })}</button>
     </div>
   );
 }

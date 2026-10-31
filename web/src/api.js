@@ -82,6 +82,7 @@ const routes = [
   // 내 신청은 언제나 나 1명. 손님은 아래 guests 로 따로 추가한다
   ['PUT', /^\/days\/([\d-]+)\/signup$/, (q, b, [d]) => rpc('signup_upsert', { p_date: d })],
   ['POST', /^\/days\/([\d-]+)\/guests$/, (q, b, [d]) => rpc('add_guests', { p_date: d, p_count: b.count, p_note: b.note || null })],
+  ['DELETE', /^\/days\/([\d-]+)\/guests\/one$/, (q, b, [d]) => rpc('remove_guest', { p_date: d })],
   ['DELETE', /^\/guests\/(\d+)$/, (q, b, [id]) => rpc('delete_guests', { p_id: Number(id) })],
   ['DELETE', /^\/days\/([\d-]+)\/signup$/, (q, b, [d]) => rpc('signup_cancel', { p_date: d })],
   ['POST', /^\/days\/([\d-]+)\/attendance$/, (q, b, [d]) => rpc('self_check', { p_date: d })],

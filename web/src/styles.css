@@ -182,3 +182,14 @@ details > summary { cursor: pointer; }
 .prompt h2 { color: var(--navy); }
 .pre { white-space: pre-line; text-align: left; margin: 0; line-height: 1.5; }
 .push-hint { white-space: pre-line; margin-top: 14px; color: var(--muted); line-height: 1.5; background: var(--soft); border-radius: 10px; padding: 10px 12px; }
+.tap-hint { margin: -4px 0 8px; }
+.day.picked { outline: 3px solid var(--sky); outline-offset: -1px; }
+.quickbar { position: fixed; left: 0; right: 0; bottom: calc(58px + env(safe-area-inset-bottom)); z-index: 7; max-width: 32rem; margin: 0 auto;
+  background: #fff; border-top: 3px solid var(--sky); box-shadow: 0 -6px 18px rgba(33,61,134,.15); border-radius: 14px 14px 0 0; padding: 10px 16px 12px; }
+.quickbar p { margin: 4px 0 0; }
+.myday { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.small-stepper { gap: 8px; font-size: .9rem; }
+.small-stepper button { width: auto; min-width: 38px; height: 34px; border-radius: 17px; padding: 0 10px; font-size: .95rem; }
+button.full { width: 100%; padding: 11px; }
+.strong { font-weight: 700; }
+button.link.logout { padding: 0; font-size: .8rem; color: var(--sky); }
