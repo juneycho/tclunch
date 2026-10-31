@@ -226,6 +226,17 @@ test('관리자는 그날 한 사람의 신청을 통째로 삭제, 다른 사�
   assert.deepEqual(h.days, []);
 });
 
+test('인원 정하고 확인: 내 인원을 그 숫자로 (0이면 취소)', async () => {
+  let d = await rpc('kim', 'set_my_count', { p_date: '2026-11-10', p_count: 3 });
+  assert.deepEqual([!!d.mine, d.myGuests, d.total], [true, 2, 3]);
+  d = await rpc('kim', 'set_my_count', { p_date: '2026-11-10', p_count: 1 });
+  assert.deepEqual([!!d.mine, d.myGuests, d.total], [true, 0, 1]);
+  await rpc('lee', 'set_my_count', { p_date: '2026-11-10', p_count: 2 });
+  d = await rpc('kim', 'set_my_count', { p_date: '2026-11-10', p_count: 0 });
+  assert.deepEqual([d.mine, d.myGuests, d.total], [null, 0, 2]);
+  await rejects(rpc('kim', 'set_my_count', { p_date: '2026-11-03', p_count: 1 }), /마감/);
+});
+
 test('요리사 시트: 날짜별 참석자, 총인원, 1인 VND 150,000 기준 예산 (모두 볼 수 있음)', async () => {
   await rpc('kim', 'signup_upsert', { p_date: '2026-11-09' });
   await rpc('lee', 'signup_upsert', { p_date: '2026-11-09' });
