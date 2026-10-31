@@ -152,6 +152,27 @@ test('손님만 추가해도 내 신청은 생기지 않고, 내 신청과 겹�
   await rpc('admin', 'add_guests', { p_date: '2026-11-03', p_count: 1 });          // 관리자는 마감 후에도
 });
 
+test('손님 +1 / −1 (내가 추가한 손님만, 마감 전까지)', async () => {
+  await rpc('kim', 'add_guests', { p_date: '2026-11-10', p_count: 1 });
+  await rpc('kim', 'add_guests', { p_date: '2026-11-10', p_count: 1 });
+  let d = await rpc('kim', 'remove_guest', { p_date: '2026-11-10' });
+  assert.deepEqual([d.myGuests, d.guests, d.mine], [1, 1, null]);
+  await rejects(rpc('lee', 'remove_guest', { p_date: '2026-11-10' }), /내가 추가한 손님이 없어요/);
+  d = await rpc('kim', 'remove_guest', { p_date: '2026-11-10' });
+  assert.equal(d.guests, 0);
+  await rpc('kim', 'add_guests', { p_date: '2026-11-10', p_count: 1 });
+  clock = '2026-11-06T17:30:00+07:00';
+  await rejects(rpc('kim', 'remove_guest', { p_date: '2026-11-10' }), /마감 후/);
+  await rejects(rpc('kim', 'signup_cancel', { p_date: '2026-11-10' }), /마감 후|신청하지/);
+});
+
+test('몇 달 앞도 예약하고, 마감 전에는 취소', async () => {
+  await rpc('kim', 'signup_upsert', { p_date: '2026-12-22' });
+  await rpc('kim', 'signup_cancel', { p_date: '2026-12-22' });
+  await rpc('kim', 'signup_upsert', { p_date: '2027-01-12' });
+  assert.equal((await rpc('kim', 'get_day', { p_date: '2027-01-12' })).total, 1);
+});
+
 test('요리사 시트: 날짜별 참석자, 총인원, 1인 VND 150,000 기준 예산 (모두 볼 수 있음)', async () => {
   await rpc('kim', 'signup_upsert', { p_date: '2026-11-09' });
   await rpc('lee', 'signup_upsert', { p_date: '2026-11-09' });
