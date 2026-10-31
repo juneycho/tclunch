@@ -2,7 +2,8 @@ import { createContext, useContext } from 'react';
 
 // 화면 문구: 한국어(ko) · 영어(en) · 베트남어(vi). {이름} 자리는 값으로 바뀐다.
 const D = {
-  appTitle: { ko: 'Thanh Cong Lunch Request', en: 'Thanh Cong Lunch Request', vi: 'Thanh Cong Lunch Request' },
+  appTitle: { ko: 'Thanh Cong 점심신청', en: 'Thanh Cong Lunch Request', vi: 'Thanh Cong Đăng ký cơm trưa' },
+  appSub: { ko: '점심신청', en: 'Lunch Request', vi: 'Đăng ký cơm trưa' },
   deadlineNotice: {
     ko: '매주 금요일 오후 5시, 차주의 식사 신청을 마감합니다.',
     en: 'Sign-ups for next week close every Friday at 5:00 PM.',

@@ -1,6 +1,6 @@
 {
-  "name": "Thanh Cong Lunch Request",
-  "short_name": "TC Lunch",
+  "name": "Thanh Cong 점심신청",
+  "short_name": "TC 점심신청",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

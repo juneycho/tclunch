@@ -12,10 +12,11 @@ export function LangPicker({ compact = false }) {
 }
 
 export function Brand() {
+  const t = useT();
   return (
     <div className="brand">
       <img src="/logo.png" alt="Thanh Cong" />
-      <h1>Thanh Cong<br /><span>Lunch Request</span></h1>
+      <h1>Thanh Cong<br /><span>{t('appSub')}</span></h1>
     </div>
   );
 }
