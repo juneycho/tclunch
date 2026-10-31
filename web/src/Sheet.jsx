@@ -13,16 +13,11 @@ export default function Sheet({ user, summary, onChange }) {
   const load = useCallback(() => api(`/sheet?from=${from}&days=14`).then(setData).catch((e) => setErr(e.message)), [from]);
   useEffect(() => { load(); }, [load]);
 
-  const price = data?.mealPrice ?? summary?.mealPrice ?? 150000;
   const canEdit = user.isCook || user.isAdmin;
   const sum = (k) => (data?.days || []).reduce((a, d) => a + d[k], 0);
 
   return (
     <div className="stack">
-      <div className="guide">
-        <p>💰 {t('sheetGuide1', { price: money(price), p2: money(price * 2), p10: money(price * 10) })}</p>
-        <p>👩‍🍳 {t('sheetGuide2')}</p>
-      </div>
       <div className="monthbar">
         <button onClick={() => setFrom(addDays(from, -7))} aria-label={t('prevWeek')}>‹</button>
         <h2 className="small-h">{fmtDay(from, t.lang)} – {fmtDay(addDays(from, 13), t.lang)}</h2>
