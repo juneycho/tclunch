@@ -36,6 +36,7 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
     } catch (e) { setMsg({ ok: false, text: e.message }); return false; } finally { setBusy(false); }
   }
 
+  const setCount = (p, n) => act(() => api(`/admin/days/${date}/people/${p.id}/count`, { method: 'PUT', body: { count: n } }));
   const day = fmtDay(date, t.lang);
 
   return (
@@ -56,10 +57,10 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
             <div className="stats one">
               <div><b>{d.total}</b><span>{t('total')}</span></div>
             </div>
-            {d.phase === 'open' && (
+            {(d.phase === 'open' || user.isAdmin) && (
               <div className="card"><MyDay date={date} count={(d.mine ? 1 : 0) + (d.myGuests || 0)} onDone={async () => { await load(); onChange(); }} /></div>
             )}
-            {user.isMember && d.phase === 'confirmed' && (
+            {user.isMember && !user.isAdmin && d.phase === 'confirmed' && (
               <p className="small muted">{d.mine ? `${t('signedUpClosed')} ` : ''}{t('closedChange')}</p>
             )}
             {msg && <p className={msg.ok ? 'ok' : 'err'}>{msg.text}</p>}
@@ -69,11 +70,15 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
               {people(d).map((p) => (
                 <li key={p.id}>
                   <span>{p.name}</span>
-                  <b>{t('peopleLong', { n: p.count })}</b>
-                  {user.isAdmin && (
-                    <button className="link small" disabled={busy}
-                      onClick={() => window.confirm(t('confirmRemoveSignup', { name: p.name })) && act(() => api(`/admin/days/${date}/people/${p.id}`, { method: 'DELETE' }))}>{t('remove')}</button>
-                  )}
+                  {user.isAdmin ? (
+                    // 관리자: 마감·지난 날도 바로 −/+ (0이 되면 삭제)
+                    <span className="stepper mini">
+                      <button disabled={busy} aria-label={t('fewer')}
+                        onClick={() => (p.count > 1 || window.confirm(t('confirmRemoveSignup', { name: p.name }))) && setCount(p, p.count - 1)}>−</button>
+                      <b>{t('peopleLong', { n: p.count })}</b>
+                      <button disabled={busy} aria-label={t('more')} onClick={() => setCount(p, p.count + 1)}>+</button>
+                    </span>
+                  ) : <b>{t('peopleLong', { n: p.count })}</b>}
                 </li>
               ))}
               {!d.total && <li className="muted">{t('nobodyYet')}</li>}

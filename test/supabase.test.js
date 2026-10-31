@@ -391,3 +391,19 @@ test('같은 프로젝트의 테니스 앱은 그대로 동작 (public 테이블
   const other = (await db.query("insert into auth.users (email, raw_user_meta_data) values ('x@y', '{}') returning id")).rows[0].id;
   assert.equal((await db.query('select count(*)::int c from lunch.profiles where id = $1', [other])).rows[0].c, 0);
 });
+
+test('관리자는 마감 후에도 아무나의 인원을 맞출 수 있음, 일반 사용자는 못 함', async () => {
+  await rpc('kim', 'set_my_count', { p_date: '2026-11-10', p_count: 1 });
+  clock = '2026-11-09T12:00:00+07:00';   // 11/10 마감 후
+  await rejects(rpc('kim', 'set_my_count', { p_date: '2026-11-10', p_count: 2 }), /마감/);
+  await rejects(rpc('lee', 'admin_set_count', { p_date: '2026-11-10', p_user: users.kim, p_count: 2 }), /관리자만/);
+  let d = await rpc('admin', 'admin_set_count', { p_date: '2026-11-10', p_user: users.kim, p_count: 3 });
+  assert.equal(d.total, 3);
+  d = await rpc('admin', 'admin_set_count', { p_date: '2026-11-10', p_user: users.lee, p_count: 2 });
+  assert.equal(d.total, 5);
+  d = await rpc('admin', 'admin_set_count', { p_date: '2026-11-10', p_user: users.kim, p_count: 0 });
+  assert.equal(d.total, 2);
+  clock = '2026-11-12T12:00:00+07:00';   // 지난 날도 고칠 수 있음
+  d = await rpc('admin', 'admin_set_count', { p_date: '2026-11-10', p_user: users.lee, p_count: 1 });
+  assert.equal(d.total, 1);
+});

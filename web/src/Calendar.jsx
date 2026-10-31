@@ -84,7 +84,8 @@ export default function Calendar({ user, summary, onChange }) {
               <button className="x" onClick={() => setQuick(null)} aria-label={t('close')}>✕</button>
             </span>
           </div>
-          {q.mealDay && q.phase === 'open'
+          {q.mealDay && q.phase !== 'open' && user.isAdmin && <p className="small muted">{closedText(q)} · {t('adminCanEdit')}</p>}
+          {q.mealDay && (q.phase === 'open' || user.isAdmin)
             ? <MyDay date={q.date} count={myCount(q)} onDone={async () => { await load(month); onChange(); }} />
             : <p className="small muted">{closedText(q)}{myCount(q) ? ` · ${t('myCount')} ${t('peopleLong', { n: myCount(q) })}` : ''}</p>}
           {msg && <p className="err small">{msg}</p>}

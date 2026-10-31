@@ -147,6 +147,7 @@ table.grid { border-collapse: collapse; width: 100%; font-size: .88rem; }
 .card > * + * { margin-top: 10px; }
 .stepper { display: flex; align-items: center; gap: 10px; }
 .stepper button { width: 38px; height: 38px; padding: 0; font-size: 1.2rem; border-radius: 50%; }
+.stepper.mini { gap: 6px; } .stepper.mini button { width: 28px; height: 28px; font-size: 1rem; } .stepper.mini b { min-width: 2.6em; text-align: center; }
 .roster, .list { list-style: none; padding: 0; margin: 0; }
 .roster li { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--line); }
 .roster li > span:first-child { flex: 1; }
