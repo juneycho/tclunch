@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, setApiLang } from './api.js';
-import { detectLang, LangContext, money, saveLang, translate, useT } from './i18n.js';
+import { detectLang, LangContext, saveLang, translate, useT } from './i18n.js';
 import { Brand, LangPicker } from './Brand.jsx';
 import Login from './Login.jsx';
 import Calendar from './Calendar.jsx';
-import Sheet from './Sheet.jsx';
 import History from './History.jsx';
 import My, { ChangePassword } from './My.jsx';
 import Admin from './Admin.jsx';
@@ -46,16 +45,14 @@ function Main() {
     );
   }
 
-  // 아래 탭은 3개만. 알림·관리자 화면은 위쪽 아이콘으로 연다.
+  // 아래 탭은 2개만. 알림·관리자 화면은 위쪽 아이콘으로 연다.
   const tabs = [
     { key: 'calendar', label: t('tabCalendar'), icon: 'calendar' },
     { key: 'summary', label: t('tabSummary'), icon: 'table' },
-    { key: 'sheet', label: t('tabSheet'), icon: 'cook' },
   ];
-  const b = summary?.budget;
 
   return (
-    <div className={`page${tab === 'summary' || tab === 'sheet' ? ' wide' : ''}`}>
+    <div className={`page${tab === 'summary' ? ' wide' : ''}`}>
       <header className="topbar">
         <img src="/logo.png" alt="Thanh Cong" className="logo" />
         <div className="grow">
@@ -79,19 +76,9 @@ function Main() {
       </header>
       <div className="stripe"><i /><i /><i /><i /></div>
       <div className="pad">
-        {b && (tab === 'calendar' || tab === 'sheet') ? (
-          <div className="budget">
-            <div><span className="label">{t('budgetTotal')}</span><b>{money(b.total)}</b></div>
-            <div><span className="label">{t('budgetSpent')}</span><b>{money(b.spent)}</b></div>
-            <div><span className="label">{t('budgetLeft')}</span><b className={b.remaining < 0 ? 'neg' : 'pos'}>{money(b.remaining)}</b></div>
-            <div className="bar"><i style={{ width: `${Math.min(100, (b.spent / Math.max(1, b.total)) * 100)}%` }} /></div>
-            <div className="small muted">{b.startDate} ~ {b.endDate}{b.perMeal ? ` · ${t('perMealAvg', { v: money(b.perMeal) })}` : ''}</div>
-          </div>
-        ) : null}
         <main>
           {tab === 'calendar' && <Calendar user={user} summary={summary} onChange={refreshSummary} />}
-          {tab === 'sheet' && <Sheet user={user} summary={summary} onChange={refreshSummary} />}
-          {tab === 'summary' && <History />}
+          {tab === 'summary' && <History user={user} />}
           {tab === 'my' && <My user={user} onLogout={() => setUser(null)} onRead={refreshSummary} />}
           {tab === 'admin' && <Admin user={user} onChange={refreshSummary} />}
         </main>

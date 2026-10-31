@@ -131,6 +131,7 @@ const routes = [
   ['PUT', /^\/admin\/days\/([\d-]+)$/, (q, b, [d]) =>
     rpc('admin_set_day', { p_date: d, p_closed: !!b.closed, p_note: b.note || null, p_reset: !!b.reset })],
   ['PUT', /^\/admin\/notice$/, (q, b) => rpc('admin_save_notice', { p_text: b.text || '' })],
+  ['DELETE', /^\/admin\/days\/([\d-]+)\/people\/([\w-]+)$/, (q, b, [d, u]) => rpc('admin_remove_person', { p_date: d, p_user: u })],
   ['GET', /^\/admin\/settings$/, () => rpc('admin_get_settings')],
   ['PUT', /^\/admin\/settings$/, (q, b) => rpc('admin_save_settings', { p: b })],
   ['GET', /^\/admin\/noshows$/, async () => ({ rows: await rpc('admin_noshows') })],

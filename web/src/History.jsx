@@ -9,12 +9,20 @@ const shiftMonth = (m, n) => {
 };
 
 // 내역: 날짜별 "이름 N명"과 총인원, 아래에 그 달 사람별 합계
-export default function History() {
+export default function History({ user }) {
   const t = useT();
   const [data, setData] = useState(null);
   const [err, setErr] = useState(null);
   const load = useCallback((m) => api(`/history${m ? `?month=${m}` : ''}`).then(setData).catch((e) => setErr(e.message)), []);
   useEffect(() => { load(); }, [load]);
+
+  async function remove(d, p) {
+    if (!window.confirm(t('confirmRemovePerson', { d: fmtDay(d.date, t.lang), name: p.name, n: p.count }))) return;
+    try {
+      await api(`/admin/days/${d.date}/people/${p.id}`, { method: 'DELETE' });
+      await load(data.month);
+    } catch (e) { setErr(e.message); }
+  }
 
   if (err) return <p className="err">{err}</p>;
   if (!data) return <p className="muted">{t('loading')}</p>;
@@ -34,7 +42,11 @@ export default function History() {
                 {data.days.map((d) => (
                   <tr key={d.date} className={d.date < data.today ? 'past' : d.date === data.today ? 'today' : ''}>
                     <td className="date">{fmtDay(d.date, t.lang)}</td>
-                    <td>{d.people.map((p) => <span key={p.name} className="chip">{p.name} <b>{t('peopleLong', { n: p.count })}</b></span>)}</td>
+                    <td>{d.people.map((p) => (
+                      <span key={p.id} className="chip">{p.name} <b>{t('peopleLong', { n: p.count })}</b>
+                        {user?.isAdmin && <button className="chip-x" aria-label={t('remove')} onClick={() => remove(d, p)}>✕</button>}
+                      </span>
+                    ))}</td>
                     <td className="num"><b className="big-num">{d.total}</b></td>
                   </tr>
                 ))}

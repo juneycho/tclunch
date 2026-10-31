@@ -213,3 +213,5 @@ button.link.logout { padding: 0; font-size: .8rem; color: var(--sky); }
 .day.past.mine { background: #d9dde5; border-color: #9cc9ad; }
 .day.past .me { color: #6c9c80; }
 .sw.past { background: #d9dde5; }
+.chip-x { border: none; background: none; color: var(--red); padding: 0 0 0 4px; font-size: .8rem; }
+.tr { grid-template-columns: minmax(0, 1fr) repeat(2, 34px) 74px 52px; }

@@ -74,59 +74,15 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
                   <b>{t('peopleLong', { n: p.count })}</b>
                   {user.isAdmin && (
                     <button className="link small" disabled={busy}
-                      onClick={() => window.confirm(t('confirmRemoveSignup', { name: p.name })) && act(async () => {
-                        if (p.signedUp) await api(`/admin/days/${date}/signup/${p.id}`, { method: 'PUT', body: { remove: true } });
-                        for (const g of p.entries) await api(`/guests/${g}`, { method: 'DELETE' });
-                      })}>{t('remove')}</button>
+                      onClick={() => window.confirm(t('confirmRemoveSignup', { name: p.name })) && act(() => api(`/admin/days/${date}/people/${p.id}`, { method: 'DELETE' }))}>{t('remove')}</button>
                   )}
                 </li>
               ))}
               {!d.total && <li className="muted">{t('nobodyYet')}</li>}
             </ul>
-            {user.isAdmin && <AdminAdd date={date} roster={d.roster} act={act} />}
           </>
         )}
-        {(user.isAdmin || user.isCook) && d && <DayOverride date={date} d={d} act={act} />}
       </div>
     </div>
-  );
-}
-
-function AdminAdd({ date, roster, act }) {
-  const t = useT();
-  const [users, setUsers] = useState([]);
-  const [pick, setPick] = useState('');
-  useEffect(() => { api('/admin/users').then((r) => setUsers(r.users.filter((u) => u.status === 'active' && u.isMember))); }, []);
-  const avail = users.filter((u) => !roster.some((r) => r.id === u.id));
-  if (!avail.length) return null;
-  return (
-    <details className="admin-box">
-      <summary>{t('adminAddSignup')}</summary>
-      <div className="row gap">
-        <select value={pick} onChange={(e) => setPick(e.target.value)}>
-          <option value="">{t('pickStaff')}</option>
-          {avail.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-        </select>
-        <button disabled={!pick} onClick={() => act(() => api(`/admin/days/${date}/signup/${pick}`, { method: 'PUT', body: { guests: 0 } }), t('added'))}>{t('add')}</button>
-      </div>
-    </details>
-  );
-}
-
-function DayOverride({ date, d, act }) {
-  const t = useT();
-  const [note, setNote] = useState(d.note || t('holidayNote'));
-  return (
-    <details className="admin-box">
-      <summary>{t('adminDay')}</summary>
-      <input placeholder={t('dayNote')} value={note} onChange={(e) => setNote(e.target.value)} maxLength={30} />
-      <div className="row gap">
-        {d.mealDay
-          ? <button onClick={() => window.confirm(t('confirmHoliday', { d: fmtDay(date, t.lang) })) &&
-              act(() => api(`/admin/days/${date}`, { method: 'PUT', body: { closed: true, note } }), t('saved'))}>{t('makeClosed')}</button>
-          : <button onClick={() => act(() => api(`/admin/days/${date}`, { method: 'PUT', body: { closed: false, note } }), t('saved'))}>{t('makeOpen')}</button>}
-        <button className="link" onClick={() => act(() => api(`/admin/days/${date}`, { method: 'PUT', body: { reset: true } }), t('saved'))}>{t('resetDefault')}</button>
-      </div>
-    </details>
   );
 }
