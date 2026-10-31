@@ -9,6 +9,8 @@ import Summary from './Summary.jsx';
 import My, { ChangePassword } from './My.jsx';
 import Admin from './Admin.jsx';
 import TabBar from './TabBar.jsx';
+import PushPrompt from './PushPrompt.jsx';
+import { refreshPush } from './push.js';
 
 export default function App() {
   const [lang, setLangState] = useState(detectLang);
@@ -28,7 +30,7 @@ function Main() {
   useEffect(() => { api('/me').then((r) => setUser(r.user)).catch(() => setUser(null)); }, []);
   useEffect(() => { if (user) refreshSummary(); }, [user, tab, refreshSummary]);
   // 푸시 함수가 자기 주소를 DB에 기억하게 한 번 깨워 둔다 (실패해도 앱 사용에는 지장 없음)
-  useEffect(() => { if (user) api('/push/key').catch(() => {}); }, [user]);
+  useEffect(() => { if (user) api('/push/key').then(refreshPush).catch(() => {}); }, [user]);
   useEffect(() => { document.title = translate(t.lang, 'appTitle'); }, [t.lang]);
 
   if (user === undefined) return <div className="center muted pad">{t('loading')}</div>;
@@ -95,6 +97,7 @@ function Main() {
         </main>
       </div>
       <TabBar tabs={tabs} active={tab} onChange={setTab} />
+      <PushPrompt />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { api } from './api.js';
 import { renderNotification, useT } from './i18n.js';
+import { isIos, isStandalone, pushSupported, subscribePush } from './push.js';
 
 export default function My({ user, onLogout, onRead }) {
   const t = useT();
@@ -67,38 +68,24 @@ export function ChangePassword({ onDone, first = false }) {
   );
 }
 
-function urlB64ToUint8Array(b64) {
-  const pad = '='.repeat((4 - (b64.length % 4)) % 4);
-  const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
-  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
-}
-
 // 휴대폰 알림 켜기. 안드로이드는 크롬에서 바로, 아이폰은 홈 화면에 추가한 앱에서만(iOS 16.4 이상) 된다.
 function PushToggle({ onTest }) {
   const t = useT();
-  const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
-  const [perm, setPerm] = useState(supported ? Notification.permission : 'unsupported');
+  const [perm, setPerm] = useState(pushSupported() ? Notification.permission : 'unsupported');
   const [status, setStatus] = useState(null);
   const [msg, setMsg] = useState(null);
-  const isIos = /iphone|ipad/i.test(navigator.userAgent);
-  const standalone = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone;
 
   useEffect(() => { api('/push/status').then(setStatus).catch(() => {}); }, []);
 
   async function enable() {
     setMsg(null);
     try {
-      const p = await Notification.requestPermission();
+      const p = await subscribePush();
       setPerm(p);
       if (p !== 'granted') return;
-      const reg = await navigator.serviceWorker.ready;
-      const { key } = await api('/push/key');
-      if (!key) throw new Error(t('pushServerNotReady'));
-      const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8Array(key) });
-      await api('/push/subscribe', { method: 'POST', body: sub.toJSON() });
       setStatus(await api('/push/status'));
       setMsg(t('pushDone'));
-    } catch (e) { setMsg(t('pushFail', { e: e.message })); }
+    } catch (e) { setMsg(e.message === 'server-not-ready' ? t('pushServerNotReady') : t('pushFail', { e: e.message })); }
   }
   async function test() {
     setMsg(null);
@@ -110,7 +97,7 @@ function PushToggle({ onTest }) {
   }
 
   if (perm === 'unsupported') {
-    return <div className="notice small">{isIos && !standalone ? t('pushIos') : t('pushUnsupported')}</div>;
+    return <div className="notice small">{isIos() && !isStandalone() ? t('pushIos') : t('pushUnsupported')}</div>;
   }
   const on = perm === 'granted' && status?.myDevices > 0;
   return (

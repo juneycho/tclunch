@@ -174,6 +174,17 @@ const D = {
   pushReconnect: { ko: '다시 연결', en: 'Reconnect', vi: 'Kết nối lại' },
   pushDone: { ko: '이 기기에서 알림을 받아요.', en: 'This device will get notifications.', vi: 'Thiết bị này sẽ nhận thông báo.' },
   pushFail: { ko: '알림 설정 실패: {e}', en: 'Could not turn on notifications: {e}', vi: 'Không bật được thông báo: {e}' },
+  loginPushHint: {
+    ko: '🔔 휴대폰 알림 받기\n안드로이드: 들어간 뒤 뜨는 창에서 "알림 켜기"\n아이폰: Safari 공유(□↑) → "홈 화면에 추가" → 그 아이콘으로 열기',
+    en: '🔔 Phone notifications\nAndroid: tap "Turn on" in the pop-up after entering\niPhone: Safari Share (□↑) → "Add to Home Screen" → open from that icon',
+    vi: '🔔 Nhận thông báo\nAndroid: bấm "Bật" trong cửa sổ hiện ra sau khi vào\niPhone: Safari Chia sẻ (□↑) → "Thêm vào MH chính" → mở từ biểu tượng đó',
+  },
+  promptTitle: { ko: '휴대폰 알림을 켤까요?', en: 'Turn on phone notifications?', vi: 'Bật thông báo điện thoại?' },
+  promptBody: { ko: '신청 마감(목 17:40, 금 06:45, 금 15:00)과 메뉴를 알려 드려요. 다음 화면에서 "허용"을 눌러 주세요.', en: 'We remind you before the deadline (Thu 17:40, Fri 06:45, Fri 15:00) and send menus. Tap "Allow" on the next screen.', vi: 'Nhắc hạn đăng ký (T5 17:40, T6 06:45, T6 15:00) và gửi thực đơn. Bấm "Cho phép" ở màn hình tiếp theo.' },
+  promptIosTitle: { ko: '아이폰은 홈 화면에 추가해야 알림이 와요', en: 'On iPhone, add the app to your home screen for notifications', vi: 'Trên iPhone, hãy thêm vào màn hình chính để nhận thông báo' },
+  promptIosBody: { ko: '1. Safari 아래쪽 공유 버튼(□↑)을 누르세요.\n2. "홈 화면에 추가"를 누르세요.\n3. 홈 화면에 생긴 아이콘으로 앱을 열면 알림 켜기 창이 떠요.', en: '1. Tap the Share button (□↑) at the bottom of Safari.\n2. Tap "Add to Home Screen".\n3. Open the app from the new home-screen icon and you will be asked to turn on notifications.', vi: '1. Bấm nút Chia sẻ (□↑) ở dưới Safari.\n2. Bấm "Thêm vào MH chính".\n3. Mở ứng dụng từ biểu tượng mới, sẽ có hỏi bật thông báo.' },
+  later: { ko: '나중에', en: 'Later', vi: 'Để sau' },
+  ok: { ko: '확인', en: 'OK', vi: 'OK' },
   pushIos: { ko: '아이폰은 Safari 공유 버튼 → "홈 화면에 추가"로 앱을 설치하면 휴대폰 알림을 받을 수 있어요.', en: 'On iPhone, use Safari Share → "Add to Home Screen" to install the app and get notifications.', vi: 'Trên iPhone, dùng Safari Chia sẻ → "Thêm vào MH chính" để cài ứng dụng và nhận thông báo.' },
   pushUnsupported: { ko: '이 브라우저는 휴대폰 알림을 지원하지 않아요. 알림은 이 화면에서 확인할 수 있어요.', en: "This browser doesn't support phone notifications. You can see them here.", vi: 'Trình duyệt này không hỗ trợ thông báo. Bạn có thể xem tại đây.' },
 

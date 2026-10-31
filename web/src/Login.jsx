@@ -41,6 +41,7 @@ export default function Login({ onLogin }) {
         {msg && <p className="err">{msg}</p>}
         <button className="primary" disabled={busy}>{busy ? t('entering') : t('enter')}</button>
       </form>
+      <p className="push-hint small">{t('loginPushHint')}</p>
     </div>
   );
 }

@@ -177,3 +177,8 @@ details > summary { cursor: pointer; }
 .stack-s > * + * { margin-top: 8px; }
 .stack-s p { margin: 0; }
 .holiday-btn { display: block; padding: 4px 0 0; color: var(--red); white-space: normal; text-align: left; max-width: 6.5em; }
+.prompt { text-align: center; align-items: stretch; }
+.prompt .bell { font-size: 2.4rem; }
+.prompt h2 { color: var(--navy); }
+.pre { white-space: pre-line; text-align: left; margin: 0; line-height: 1.5; }
+.push-hint { white-space: pre-line; margin-top: 14px; color: var(--muted); line-height: 1.5; background: var(--soft); border-radius: 10px; padding: 10px 12px; }
