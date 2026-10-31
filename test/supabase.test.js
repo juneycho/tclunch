@@ -173,6 +173,26 @@ test('몇 달 앞도 예약하고, 마감 전에는 취소', async () => {
   assert.equal((await rpc('kim', 'get_day', { p_date: '2027-01-12' })).total, 1);
 });
 
+test('날짜를 누를 때마다 +1명 (나 → 손님), −1로 줄이고, 내역에 이름 N명', async () => {
+  let d = await rpc('kim', 'tap_day', { p_date: '2026-11-10' });
+  assert.deepEqual([!!d.mine, d.myGuests, d.total], [true, 0, 1]);
+  d = await rpc('kim', 'tap_day', { p_date: '2026-11-10' });
+  d = await rpc('kim', 'tap_day', { p_date: '2026-11-10' });
+  assert.deepEqual([!!d.mine, d.myGuests, d.total], [true, 2, 3]);
+  await rpc('lee', 'tap_day', { p_date: '2026-11-10' });
+  await rpc('cook', 'tap_day', { p_date: '2026-11-11' });   // 식사 대상이 아닌 요리사는 손님으로
+  d = await rpc('kim', 'untap_day', { p_date: '2026-11-10' });
+  assert.deepEqual([!!d.mine, d.myGuests], [true, 1]);
+  const h = await rpc('lee', 'history_list', { p_month: '2026-11' });
+  assert.deepEqual(h.days.map((x) => [x.date, x.total, x.people.map((p) => `${p.name} ${p.count}`)]),
+    [['2026-11-10', 3, ['김철수 2', '이영희 1']], ['2026-11-11', 1, ['요리사 1']]]);
+  assert.equal(h.total, 4);
+  await rpc('kim', 'untap_day', { p_date: '2026-11-10' });
+  d = await rpc('kim', 'untap_day', { p_date: '2026-11-10' });
+  assert.deepEqual([d.mine, d.myGuests], [null, 0]);
+  await rejects(rpc('kim', 'tap_day', { p_date: '2026-11-03' }), /마감/);
+});
+
 test('요리사 시트: 날짜별 참석자, 총인원, 1인 VND 150,000 기준 예산 (모두 볼 수 있음)', async () => {
   await rpc('kim', 'signup_upsert', { p_date: '2026-11-09' });
   await rpc('lee', 'signup_upsert', { p_date: '2026-11-09' });
