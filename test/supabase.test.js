@@ -164,46 +164,28 @@ test('요리사 시트: 날짜별 참석자, 총인원, 1인 VND 150,000 기준 
   assert.deepEqual(d.guestList.map((x) => [x.host, x.count]), [['이영희', 2]]);
 });
 
-test('월별 사용자별 식사 횟수표', async () => {
-  for (const d of ['2026-11-09', '2026-11-10']) {
-    await rpc('kim', 'signup_upsert', { p_date: d });
-    await rpc('lee', 'signup_upsert', { p_date: d });
-  }
-  clock = '2026-11-09T12:00:00+07:00';
-  await rpc('kim', 'self_check', { p_date: '2026-11-09' });
-  clock = '2026-11-10T16:00:00+07:00';
-  await rpc('cook', 'set_attendance', { p_date: '2026-11-10', p_user: users.kim, p_attended: true });
+test('신청내용: 월별 사람별 신청 횟수, 휴일로 바뀐 날은 빠짐', async () => {
+  for (const d of ['2026-11-09', '2026-11-10', '2026-11-11']) await rpc('kim', 'signup_upsert', { p_date: d });
+  await rpc('lee', 'signup_upsert', { p_date: '2026-11-10' });
+  await rpc('lee', 'add_guests', { p_date: '2026-11-11', p_count: 2 });
+  // 요리사가 11/11을 휴일로 지정
+  await rpc('cook', 'admin_set_day', { p_date: '2026-11-11', p_closed: true, p_note: '휴일' });
+  await rejects(rpc('kim', 'admin_set_day', { p_date: '2026-11-12', p_closed: true }), /요리사나 관리자/);
   const m = await rpc('lee', 'monthly_summary', { p_month: '2026-11' });
   const kim = m.rows.find((r) => r.name === '김철수');
   const lee = m.rows.find((r) => r.name === '이영희');
-  assert.deepEqual([kim.meals, kim.noShows, kim.cells['2026-11-09']], [2, 0, 'A']);
-  assert.deepEqual([lee.meals, lee.noShows, lee.cells['2026-11-10']], [0, 2, 'N']);
-  assert.ok(!m.rows.some((r) => r.name === '요리사'));      // 식사 안 하는 요리사는 빠짐
-  assert.ok(m.days.includes('2026-11-09') && !m.days.includes('2026-11-14'));
+  assert.deepEqual([kim.meals, kim.cells['2026-11-09'], kim.cells['2026-11-11']], [2, 1, undefined]);
+  assert.equal(lee.meals, 1);
+  assert.deepEqual(m.guests, {});
+  assert.ok(!m.rows.some((r) => r.name === '요리사'));
+  assert.ok(m.days.includes('2026-11-09') && !m.days.includes('2026-11-11') && !m.days.includes('2026-11-14'));
 });
 
-test('출석 체크와 노쇼 집계/알림, 정정', async () => {
-  await rpc('kim', 'signup_upsert', { p_date: '2026-11-09' });
+test('노쇼 알림은 보내지 않는다', async () => {
   await rpc('lee', 'signup_upsert', { p_date: '2026-11-09' });
-  clock = '2026-11-09T12:00:00+07:00';
-  await rpc('kim', 'self_check', { p_date: '2026-11-09' });
-  clock = '2026-11-09T16:00:00+07:00';
-  await rejects(rpc('lee', 'self_check', { p_date: '2026-11-09' }), /출석 체크는/);
-  await jobs(); await jobs();
-  assert.equal((await titles('lee')).filter((t) => t.includes('노쇼')).length, 1);
-  assert.equal((await rpc('lee', 'get_summary')).noShows.total, 1);
-  assert.equal((await rpc('kim', 'get_summary')).noShows.total, 0);
-  await rpc('cook', 'set_attendance', { p_date: '2026-11-09', p_user: users.lee, p_attended: true });
-  assert.equal((await rpc('lee', 'get_summary')).noShows.total, 0);
-  clock = '2026-11-12T10:00:00+07:00';
-  await rejects(rpc('cook', 'set_attendance', { p_date: '2026-11-09', p_user: users.lee, p_attended: false }), /오늘과 어제/);
-});
-
-test('노쇼 기준 초과 시 관리자 알림', async () => {
-  for (const d of ['2026-11-09', '2026-11-10', '2026-11-11']) await rpc('lee', 'signup_upsert', { p_date: d });
-  clock = '2026-11-11T17:00:00+07:00';
+  clock = '2026-11-09T18:00:00+07:00';
   await jobs();
-  assert.ok((await titles('admin')).some((t) => t.includes('이영희님 노쇼 3회')));
+  assert.ok(!(await titles('lee')).some((t) => t.includes('노쇼')));
 });
 
 test('인원 확정되면 요리사 알림, 메뉴 등록 시 신청자 알림', async () => {
@@ -218,13 +200,30 @@ test('인원 확정되면 요리사 알림, 메뉴 등록 시 신청자 알림',
   assert.ok((await titles('kim')).some((t) => t.includes('비빔밥')));
 });
 
-test('마감 전날(목) 다음 주에 하나도 신청 안 한 직원에게 리마인드', async () => {
+test('목요일 오전·금요일 오전에 모든 직원에게 다음 주 마감 알림 (하루 한 번)', async () => {
   await rpc('lee', 'signup_upsert', { p_date: '2026-11-10' });
-  clock = '2026-11-05T10:00:00+07:00';
+  clock = '2026-11-05T08:00:00+07:00';   // 목 8시: 아직
+  await jobs();
+  assert.equal((await titles('kim')).length, 0);
+  clock = '2026-11-05T09:10:00+07:00';
   await jobs(); await jobs();
-  assert.equal((await titles('kim')).filter((t) => t === '다음 주 점심 신청이 내일 마감돼요').length, 1);
-  assert.ok(!(await titles('lee')).some((t) => t.includes('내일 마감')));
-  assert.ok(!(await titles('cook')).some((t) => t.includes('내일 마감')));
+  assert.deepEqual((await titles('kim')).filter((t) => t.includes('마감돼요')), ['내일 17시, 다음 주 점심 신청이 마감돼요']);
+  assert.ok((await titles('lee')).includes('내일 17시, 다음 주 점심 신청이 마감돼요'));
+  assert.ok(!(await titles('cook')).some((t) => t.includes('마감돼요')));
+  clock = '2026-11-06T09:30:00+07:00';
+  await jobs();
+  assert.ok((await titles('kim')).includes('오늘 17시, 다음 주 점심 신청이 마감돼요'));
+  clock = '2026-11-06T17:30:00+07:00';   // 마감 뒤에는 새로 안 보냄
+  await db.query("delete from notifications where title like '오늘%'");
+  await jobs();
+  assert.ok(!(await titles('kim')).some((t) => t.startsWith('오늘')));
+});
+
+test('휴대폰 알림 시험 보내기', async () => {
+  await rpc('kim', 'send_test_notification');
+  await rpc('kim', 'send_test_notification');
+  assert.equal((await titles('kim')).filter((t) => t.includes('시험')).length, 2);
+  assert.deepEqual(await rpc('kim', 'push_status'), { serverReady: false, myDevices: 0 });
 });
 
 test('예산: 총예산, 지출, 남은 예산', async () => {
