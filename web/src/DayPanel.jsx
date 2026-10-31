@@ -3,6 +3,18 @@ import { api } from './api.js';
 import { fmtDay, useT } from './i18n.js';
 import MyDay from './MyDay.jsx';
 
+// 사람별 인원: 본인 신청 1 + 그 사람이 추가한 손님
+function people(d) {
+  const map = new Map(d.roster.map((r) => [r.id, { id: r.id, name: r.name, count: 1, signedUp: true, entries: [] }]));
+  for (const g of d.guestEntries) {
+    const p = map.get(g.hostId) || { id: g.hostId, name: g.host, count: 0, signedUp: false, entries: [] };
+    p.count += g.count;
+    p.entries.push(g.id);
+    map.set(g.hostId, p);
+  }
+  return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
 export default function DayPanel({ date, user, summary, onClose, onChange }) {
   const t = useT();
   const [d, setD] = useState(null);
@@ -46,49 +58,31 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
               <div><b>{d.members}</b><span>{t('staff')}</span></div>
               <div><b>{d.guests}</b><span>{t('guests')}</span></div>
             </div>
-            {d.menu ? (
-              <div className="card menu-card"><span className="label">{t('menu')}</span><b>{d.menu.title}</b>{d.menu.description && <p>{d.menu.description}</p>}</div>
-            ) : d.phase !== 'open' && <p className="small muted">{t('noMenuYet')}</p>}
-
             {d.phase === 'open' && (
-              <div className="card"><MyDay date={date} mine={!!d.mine} myGuests={d.myGuests} isMember={user.isMember} onDone={async () => { await load(); onChange(); }} /></div>
+              <div className="card"><MyDay date={date} count={(d.mine ? 1 : 0) + (d.myGuests || 0)} onDone={async () => { await load(); onChange(); }} /></div>
             )}
             {user.isMember && d.phase === 'confirmed' && (
               <p className="small muted">{d.mine ? `${t('signedUpClosed')} ` : ''}{t('closedChange')}</p>
             )}
             {msg && <p className={msg.ok ? 'ok' : 'err'}>{msg.text}</p>}
 
-            <h3>{t('attendees', { n: d.roster.length })}</h3>
+            <h3>{t('attendees', { n: d.total })}</h3>
             <ul className="roster">
-              {d.roster.map((r) => (
-                <li key={r.id}>
-                  <span>{r.name}</span>
+              {people(d).map((p) => (
+                <li key={p.id}>
+                  <span>{p.name}</span>
+                  <b>{t('peopleLong', { n: p.count })}</b>
                   {user.isAdmin && (
                     <button className="link small" disabled={busy}
-                      onClick={() => window.confirm(t('confirmRemoveSignup', { name: r.name })) &&
-                        act(() => api(`/admin/days/${date}/signup/${r.id}`, { method: 'PUT', body: { remove: true } }))}>{t('remove')}</button>
+                      onClick={() => window.confirm(t('confirmRemoveSignup', { name: p.name })) && act(async () => {
+                        if (p.signedUp) await api(`/admin/days/${date}/signup/${p.id}`, { method: 'PUT', body: { remove: true } });
+                        for (const g of p.entries) await api(`/guests/${g}`, { method: 'DELETE' });
+                      })}>{t('remove')}</button>
                   )}
                 </li>
               ))}
-              {!d.roster.length && <li className="muted">{t('nobodyYet')}</li>}
+              {!d.total && <li className="muted">{t('nobodyYet')}</li>}
             </ul>
-
-            {d.guestEntries.length > 0 && (
-              <>
-                <h3>{t('guestsList')} · {t('peopleLong', { n: d.guests })}</h3>
-                <ul className="roster">
-                  {d.guestEntries.map((g) => (
-                    <li key={g.id}>
-                      <span>{t('peopleLong', { n: g.count })}{g.note ? ` · ${g.note}` : ''} <small className="muted">{t('addedBy', { name: g.host })}</small></span>
-                      {(user.isAdmin || (g.hostId === user.id && d.phase === 'open')) && (
-                        <button className="link small" disabled={busy}
-                          onClick={() => act(() => api(`/guests/${g.id}`, { method: 'DELETE' }), t('didCancel'))}>{t('remove')}</button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
             {user.isAdmin && <AdminAdd date={date} roster={d.roster} act={act} />}
           </>
         )}

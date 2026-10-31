@@ -5,7 +5,7 @@ import { Brand, LangPicker } from './Brand.jsx';
 import Login from './Login.jsx';
 import Calendar from './Calendar.jsx';
 import Sheet from './Sheet.jsx';
-import Summary from './Summary.jsx';
+import History from './History.jsx';
 import My, { ChangePassword } from './My.jsx';
 import Admin from './Admin.jsx';
 import TabBar from './TabBar.jsx';
@@ -91,7 +91,7 @@ function Main() {
         <main>
           {tab === 'calendar' && <Calendar user={user} summary={summary} onChange={refreshSummary} />}
           {tab === 'sheet' && <Sheet user={user} summary={summary} onChange={refreshSummary} />}
-          {tab === 'summary' && <Summary user={user} />}
+          {tab === 'summary' && <History />}
           {tab === 'my' && <My user={user} onLogout={() => setUser(null)} onRead={refreshSummary} />}
           {tab === 'admin' && <Admin user={user} onChange={refreshSummary} />}
         </main>

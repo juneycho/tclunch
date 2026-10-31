@@ -53,23 +53,20 @@ export default function Sheet({ user, summary, onChange }) {
   );
 }
 
+// 이름별 인원: 본인 신청 1 + 그 사람이 추가한 손님
+function personCounts(d) {
+  const m = new Map(d.names.map((n) => [n, 1]));
+  for (const g of d.guestList) m.set(g.host, (m.get(g.host) || 0) + g.count);
+  return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+}
+
 function SheetRow({ d, canEdit, onOpen, onSaved }) {
   const t = useT();
-  const [edit, setEdit] = useState(false);
-  const [title, setTitle] = useState(d.menu?.title || '');
-  const [desc, setDesc] = useState(d.menu?.description || '');
   const [err, setErr] = useState(null);
   async function holiday() {
     if (!window.confirm(t('confirmHoliday', { d: fmtDay(d.date, t.lang) }))) return;
     try {
       await api(`/admin/days/${d.date}`, { method: 'PUT', body: { closed: true, note: t('holidayNote') } });
-      onSaved();
-    } catch (e) { setErr(e.message); }
-  }
-  async function save() {
-    try {
-      await api(`/days/${d.date}/menu`, { method: 'PUT', body: { title, description: desc } });
-      setEdit(false);
       onSaved();
     } catch (e) { setErr(e.message); }
   }
@@ -81,26 +78,8 @@ function SheetRow({ d, canEdit, onOpen, onSaved }) {
         {canEdit && d.phase !== 'past' && <button className="link small holiday-btn" onClick={holiday}>{t('makeClosed')}</button>}
       </td>
       <td>
-        <div className="names">{d.names.length ? d.names.join(', ') : <span className="muted">—</span>}</div>
-        {d.guestList.map((g) => (
-          <div key={g.id} className="small guestline">+ {t('guestsShort', { n: g.count })}{g.note ? ` (${g.note})` : ''} · {t('addedBy', { name: g.host })}</div>
-        ))}
-        <div className="menu-line">
-          {err && !edit && <p className="err">{err}</p>}
-          {edit ? (
-            <div className="form">
-              <input placeholder={t('menuPlaceholder')} value={title} onChange={(e) => setTitle(e.target.value)} maxLength={60} />
-              <textarea placeholder={t('descPlaceholder')} value={desc} onChange={(e) => setDesc(e.target.value)} maxLength={300} rows={2} />
-              {err && <p className="err">{err}</p>}
-              <div className="row gap"><button className="primary" onClick={save}>{t('save')}</button><button className="link" onClick={() => setEdit(false)}>{t('cancel')}</button></div>
-            </div>
-          ) : (
-            <>
-              {d.menu ? <b>🍽 {d.menu.title}</b> : <span className="muted small">{t('menuTbd')}</span>}
-              {canEdit && <button className="link small" onClick={() => setEdit(true)}>{d.menu ? t('edit') : t('setMenu')}</button>}
-            </>
-          )}
-        </div>
+        <div className="names">{d.total ? personCounts(d).map(([n, c]) => `${n} ${t('peopleLong', { n: c })}`).join(', ') : <span className="muted">—</span>}</div>
+        {err && <p className="err">{err}</p>}
       </td>
       <td className="num">
         <b className="big-num">{d.total}</b>
