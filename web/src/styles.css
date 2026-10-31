@@ -193,3 +193,6 @@ details > summary { cursor: pointer; }
 button.full { width: 100%; padding: 11px; }
 .strong { font-weight: 700; }
 button.link.logout { padding: 0; font-size: .8rem; color: var(--sky); }
+.install { margin-top: 14px; border-color: #bfe8f8; background: var(--blue-soft); }
+.install b { color: var(--navy); }
+.install .pre { color: var(--ink); }

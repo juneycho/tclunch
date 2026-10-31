@@ -174,10 +174,12 @@ const D = {
   pushReconnect: { ko: '다시 연결', en: 'Reconnect', vi: 'Kết nối lại' },
   pushDone: { ko: '이 기기에서 알림을 받아요.', en: 'This device will get notifications.', vi: 'Thiết bị này sẽ nhận thông báo.' },
   pushFail: { ko: '알림 설정 실패: {e}', en: 'Could not turn on notifications: {e}', vi: 'Không bật được thông báo: {e}' },
-  loginPushHint: {
-    ko: '🔔 휴대폰 알림 받기\n안드로이드: 들어간 뒤 뜨는 창에서 "알림 켜기"\n아이폰: Safari 공유(□↑) → "홈 화면에 추가" → 그 아이콘으로 열기',
-    en: '🔔 Phone notifications\nAndroid: tap "Turn on" in the pop-up after entering\niPhone: Safari Share (□↑) → "Add to Home Screen" → open from that icon',
-    vi: '🔔 Nhận thông báo\nAndroid: bấm "Bật" trong cửa sổ hiện ra sau khi vào\niPhone: Safari Chia sẻ (□↑) → "Thêm vào MH chính" → mở từ biểu tượng đó',
+  installTitle: { ko: '📲 앱으로 설치하기', en: '📲 Install the app', vi: '📲 Cài ứng dụng' },
+  installBtn: { ko: '이 휴대폰에 앱 설치', en: 'Install on this phone', vi: 'Cài vào điện thoại này' },
+  installSteps: {
+    ko: '안드로이드(크롬): 오른쪽 위 ⋮ → "앱 설치" 또는 "홈 화면에 추가"\n아이폰(Safari): 아래쪽 공유(□↑) → "홈 화면에 추가"\n설치 후에는 홈 화면의 아이콘으로 여세요. 그래야 알림도 와요.',
+    en: 'Android (Chrome): ⋮ at top right → "Install app" or "Add to Home screen"\niPhone (Safari): Share (□↑) at the bottom → "Add to Home Screen"\nAfter installing, open it from the home-screen icon so notifications work.',
+    vi: 'Android (Chrome): ⋮ góc trên phải → "Cài đặt ứng dụng" hoặc "Thêm vào MH chính"\niPhone (Safari): Chia sẻ (□↑) ở dưới → "Thêm vào MH chính"\nSau khi cài, mở từ biểu tượng trên màn hình chính để nhận thông báo.',
   },
   promptTitle: { ko: '휴대폰 알림을 켤까요?', en: 'Turn on phone notifications?', vi: 'Bật thông báo điện thoại?' },
   promptBody: { ko: '신청 마감(목 17:40, 금 06:45, 금 15:00)과 메뉴를 알려 드려요. 다음 화면에서 "허용"을 눌러 주세요.', en: 'We remind you before the deadline (Thu 17:40, Fri 06:45, Fri 15:00) and send menus. Tap "Allow" on the next screen.', vi: 'Nhắc hạn đăng ký (T5 17:40, T6 06:45, T6 15:00) và gửi thực đơn. Bấm "Cho phép" ở màn hình tiếp theo.' },

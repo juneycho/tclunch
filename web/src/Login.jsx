@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { api } from './api.js';
 import { useT } from './i18n.js';
 import { Brand, LangPicker } from './Brand.jsx';
+import { isStandalone } from './push.js';
 
 // 이름만 쓰고 들어가기. 처음 쓰는 이름이면 자동 등록. 관리자 이름일 때만 비밀번호를 묻는다.
 export default function Login({ onLogin }) {
@@ -41,7 +42,33 @@ export default function Login({ onLogin }) {
         {msg && <p className="err">{msg}</p>}
         <button className="primary" disabled={busy}>{busy ? t('entering') : t('enter')}</button>
       </form>
-      <p className="push-hint small">{t('loginPushHint')}</p>
+      {!isStandalone() && <InstallGuide />}
+    </div>
+  );
+}
+
+// 첫 화면 앱 설치 안내. 안드로이드 크롬이 설치를 허락하면 버튼 한 번으로 설치된다.
+function InstallGuide() {
+  const t = useT();
+  const [canInstall, setCanInstall] = useState(() => !!window.tcInstallPrompt);
+  useEffect(() => {
+    const on = () => setCanInstall(true);
+    window.addEventListener('tc-installable', on);
+    return () => window.removeEventListener('tc-installable', on);
+  }, []);
+  async function install() {
+    const p = window.tcInstallPrompt;
+    if (!p) return;
+    p.prompt();
+    await p.userChoice.catch(() => {});
+    window.tcInstallPrompt = null;
+    setCanInstall(false);
+  }
+  return (
+    <div className="install card">
+      <b>{t('installTitle')}</b>
+      {canInstall && <button className="accent" onClick={install}>{t('installBtn')}</button>}
+      <p className="pre small">{t('installSteps')}</p>
     </div>
   );
 }
