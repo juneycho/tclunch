@@ -203,12 +203,15 @@ test('로그인 화면 공지: 누구나 읽고 관리자만 고침, 관리자 �
   assert.deepEqual(await rpc('anon', 'login_lookup', { p_name: 'tc' }), before);
 });
 
-test('이번 한 번: 11/2 주 마감을 10/31(토) 22:00로 연장', async () => {
-  clock = '2026-10-31T21:50:00+07:00';
-  const d = await rpc('kim', 'tap_day', { p_date: '2026-11-03' });
-  assert.deepEqual([d.phase, d.deadlineAt], ['open', '2026-10-31 22:00']);
-  clock = '2026-10-31T22:00:00+07:00';
-  await rejects(rpc('kim', 'tap_day', { p_date: '2026-11-03' }), /마감/);
+test('첫 주: 11/2 주 마감을 11/2(월) 10:00로 연장, 오늘 점심도 신청 가능', async () => {
+  clock = '2026-11-02T09:50:00+07:00';
+  let d = await rpc('kim', 'set_my_count', { p_date: '2026-11-02', p_count: 1 });
+  assert.deepEqual([d.phase, d.deadlineAt, d.total], ['open', '2026-11-02 10:00', 1]);
+  d = await rpc('kim', 'set_my_count', { p_date: '2026-11-04', p_count: 2 });
+  assert.equal(d.total, 2);
+  clock = '2026-11-02T10:00:00+07:00';
+  await rejects(rpc('kim', 'set_my_count', { p_date: '2026-11-03', p_count: 1 }), /마감/);
+  assert.equal((await rpc('kim', 'get_day', { p_date: '2026-11-02' })).phase, 'today');
   assert.equal((await rpc('kim', 'get_day', { p_date: '2026-11-10' })).deadlineAt, '2026-11-06 17:00');   // 그다음 주는 원래대로
 });
 
