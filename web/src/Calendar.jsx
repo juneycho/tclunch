@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { api } from './api.js';
 import { deadlineParts, fmtDay, monthTitle, useT, weekdayNames, weekdayOf } from './i18n.js';
-import DayPanel from './DayPanel.jsx';
+import DayPanel, { NamedAdd } from './DayPanel.jsx';
 import MyDay from './MyDay.jsx';
 
 const shiftMonth = (m, n) => {
@@ -80,14 +80,15 @@ export default function Calendar({ user, summary, onChange }) {
           <div className="row between">
             <b>{fmtDay(q.date, t.lang)}{q.mealDay ? ` · ${t('total')} ${t('peopleLong', { n: q.total })}` : ''}</b>
             <span className="row gap">
-              {q.mealDay && user.isAdmin && <button className="link small" onClick={() => setOpen(q.date)}>{t('namedAddLink')}</button>}
               {q.mealDay && <button className="link small" onClick={() => setOpen(q.date)}>{t('details')}</button>}
               <button className="x" onClick={() => setQuick(null)} aria-label={t('close')}>✕</button>
             </span>
           </div>
           {q.mealDay && q.phase !== 'open' && user.isAdmin && <p className="small muted">{closedText(q)} · {t('adminCanEdit')}</p>}
-          {q.mealDay && (q.phase === 'open' || user.isAdmin)
-            ? <MyDay simple={!user.isAdmin} date={q.date} count={myCount(q)} onDone={async () => { await load(month); onChange(); }} />
+          {q.mealDay && user.isAdmin
+            ? <NamedAdd date={q.date} onDone={async () => { await load(month); onChange(); }} />
+            : q.mealDay && q.phase === 'open'
+            ? <MyDay date={q.date} count={myCount(q)} onDone={async () => { await load(month); onChange(); }} />
             : <p className="small muted">{closedText(q)}{myCount(q) ? ` · ${t('myCount')} ${t('peopleLong', { n: myCount(q) })}` : ''}</p>}
           {msg && <p className="err small">{msg}</p>}
         </div>

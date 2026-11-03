@@ -39,9 +39,9 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
     } catch (e) { setMsg({ ok: false, text: e.message }); return false; } finally { setBusy(false); }
   }
 
-  const setCount = (p, n) => act(() => (p.named
-    ? api(`/admin/days/${date}/named`, { method: 'PUT', body: { name: p.name, count: n } })
-    : api(`/admin/days/${date}/people/${p.id}/count`, { method: 'PUT', body: { count: n } })));
+  const remove = (p) => window.confirm(t('confirmRemoveSignup', { name: p.name })) && act(() => (p.named
+    ? api(`/admin/days/${date}/named`, { method: 'PUT', body: { name: p.name, count: 0 } })
+    : api(`/admin/days/${date}/people/${p.id}`, { method: 'DELETE' })));
   const day = fmtDay(date, t.lang);
 
   return (
@@ -62,8 +62,9 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
             <div className="stats one">
               <div><b>{d.total}</b><span>{t('total')}</span></div>
             </div>
-            {(d.phase === 'open' || user.isAdmin) && (
-              <div className="card"><MyDay simple={!user.isAdmin} date={date} count={(d.mine ? 1 : 0) + (d.myGuests || 0)} onDone={async () => { await load(); onChange(); }} /></div>
+            {user.isAdmin && <div className="card"><NamedAdd date={date} onDone={async () => { await load(); onChange(); }} /></div>}
+            {d.phase === 'open' && !user.isAdmin && (
+              <div className="card"><MyDay date={date} count={(d.mine ? 1 : 0) + (d.myGuests || 0)} onDone={async () => { await load(); onChange(); }} /></div>
             )}
             {user.isMember && !user.isAdmin && d.phase === 'confirmed' && (
               <p className="small muted">{d.mine ? `${t('signedUpClosed')} ` : ''}{t('closedChange')}</p>
@@ -75,20 +76,12 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
               {people(d).map((p) => (
                 <li key={p.id || `n:${p.name}`}>
                   <span>{p.name}</span>
-                  {user.isAdmin ? (
-                    // 관리자: 마감·지난 날도 바로 −/+ (0이 되면 삭제)
-                    <span className="stepper mini">
-                      <button disabled={busy} aria-label={t('fewer')}
-                        onClick={() => (p.count > 1 || window.confirm(t('confirmRemoveSignup', { name: p.name }))) && setCount(p, p.count - 1)}>−</button>
-                      <b>{t('peopleLong', { n: p.count })}</b>
-                      <button disabled={busy} aria-label={t('more')} onClick={() => setCount(p, p.count + 1)}>+</button>
-                    </span>
-                  ) : <b>{t('peopleLong', { n: p.count })}</b>}
+                  <b>{t('peopleLong', { n: p.count })}</b>
+                  {user.isAdmin && <button className="link small" disabled={busy} onClick={() => remove(p)}>{t('remove')}</button>}
                 </li>
               ))}
               {!d.total && <li className="muted">{t('nobodyYet')}</li>}
             </ul>
-            {user.isAdmin && <NamedAdd busy={busy} onAdd={(name, n) => act(() => api(`/admin/days/${date}/named`, { method: 'PUT', body: { name, count: n } }), t('namedAdded', { name, n }))} />}
           </>
         )}
       </div>
@@ -96,28 +89,33 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
   );
 }
 
-// 관리자: 이름을 적고 인원을 정해 추가 (앱에 들어온 적 없는 사람도 됨, 같은 이름이면 그 인원으로 바뀜)
-function NamedAdd({ busy, onAdd }) {
+// 관리자: 이름을 쓰고 등록하면 그 이름으로 1명 (마감·지난 날도 됨, 앱에 없는 이름도 됨)
+export function NamedAdd({ date, onDone }) {
   const t = useT();
   const [name, setName] = useState('');
-  const [n, setN] = useState(1);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null);
+  useEffect(() => { setMsg(null); }, [date]);
   async function submit(e) {
     e.preventDefault();
-    if (!name.trim()) return;
-    if (await onAdd(name.trim(), n)) { setName(''); setN(1); }
+    const nm = name.trim();
+    if (!nm) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      await api(`/admin/days/${date}/named`, { method: 'PUT', body: { name: nm, count: 1 } });
+      await onDone();
+      setName('');
+      setMsg({ ok: true, text: t('namedAdded', { name: nm }) });
+    } catch (err) { setMsg({ ok: false, text: err.message }); } finally { setBusy(false); }
   }
   return (
-    <form className="card named-add" onSubmit={submit}>
-      <b className="small">{t('namedAddTitle')}</b>
+    <form className="named-add" onSubmit={submit}>
       <div className="row gap">
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('namedPlaceholder')} maxLength={40} className="grow" />
-        <span className="stepper mini">
-          <button type="button" disabled={busy || n <= 1} onClick={() => setN(n - 1)} aria-label={t('fewer')}>−</button>
-          <b>{t('peopleLong', { n })}</b>
-          <button type="button" disabled={busy} onClick={() => setN(n + 1)} aria-label={t('more')}>+</button>
-        </span>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('namedPlaceholder')} maxLength={40} />
+        <button className="primary" disabled={busy || !name.trim()}>{t('namedAddBtn')}</button>
       </div>
-      <button className="primary full" disabled={busy || !name.trim()}>{t('namedAddBtn')}</button>
+      {msg && <p className={`${msg.ok ? 'ok' : 'err'} small`}>{msg.text}</p>}
     </form>
   );
 }
