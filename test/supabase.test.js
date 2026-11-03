@@ -432,3 +432,18 @@ test('관리자는 이름을 직접 적어 인원을 넣고 고칠 수 있음 (�
   await rpc('admin', 'admin_set_named', { p_date: '2026-11-10', p_name: '홍길동', p_count: 0 });
   assert.equal((await rpc('admin', 'get_day', { p_date: '2026-11-10' })).total, 3);
 });
+
+test('관리자는 계정을 삭제할 수 있고, 그 사람의 신청 인원은 같은 이름으로 남음', async () => {
+  await rpc('kim', 'set_my_count', { p_date: '2026-11-10', p_count: 2 });
+  await rpc('kim', 'set_my_count', { p_date: '2026-11-11', p_count: 1 });
+  await rejects(rpc('lee', 'admin_delete_user', { p_id: users.kim }), /관리자만/);
+  await rejects(rpc('admin', 'admin_delete_user', { p_id: users.admin }), /본인 계정/);
+  await rpc('admin', 'admin_delete_user', { p_id: users.kim });
+  const left = await db.query('select count(*)::int as n from lunch.profiles where id = $1', [users.kim]);
+  assert.equal(left.rows[0].n, 0);
+  const h = await rpc('admin', 'history_list', { p_month: '2026-11' });
+  assert.deepEqual(h.days.map((d) => [d.date, d.total, d.people[0].name]), [['2026-11-10', 2, '김철수'], ['2026-11-11', 1, '김철수']]);
+  assert.equal(h.totals.find((t) => t.name === '김철수').count, 3);
+  await rpc('admin', 'admin_set_named', { p_date: '2026-11-10', p_name: '김철수', p_count: 0 });   // 남은 기록도 지울 수 있음
+  assert.equal((await rpc('admin', 'get_day', { p_date: '2026-11-10' })).total, 0);
+});

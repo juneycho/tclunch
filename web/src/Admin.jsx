@@ -34,6 +34,16 @@ function Users({ me }) {
     setMsg({ ok: true, text: t('tempPwMsg', { name: u.name, pw: r.tempPassword }) });
   }
 
+  // 계정만 지우고 신청 인원은 같은 이름으로 남는다
+  async function remove(u) {
+    if (!window.confirm(t('confirmDeleteUser', { name: u.name }))) return;
+    try {
+      await api(`/admin/users/${u.id}`, { method: 'DELETE' });
+      setUsers(users.filter((x) => x.id !== u.id));
+      setMsg({ ok: true, text: t('userDeleted', { name: u.name }) });
+    } catch (e) { setMsg({ ok: false, text: e.message }); }
+  }
+
   const rest = users.filter((u) => u.status !== 'pending');
   return (
     <>
@@ -53,7 +63,9 @@ function Users({ me }) {
                   <option value="active">{t('active')}</option><option value="inactive">{t('inactive')}</option>
                 </select>
               </span>
-              <span>{u.isAdmin && u.id !== me.id ? <button className="link small" onClick={() => reset(u)}>{t('resetPw')}</button> : null}</span>
+              <span>{u.id === me.id ? null : u.isAdmin
+                ? <button className="link small" onClick={() => reset(u)}>{t('resetPw')}</button>
+                : <button className="link small danger-link" onClick={() => remove(u)}>{t('remove')}</button>}</span>
             </div>
           ))}
         </div>

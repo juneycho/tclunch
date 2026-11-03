@@ -125,6 +125,7 @@ const routes = [
 
   // 관리자
   ['GET', /^\/admin\/users$/, async () => ({ users: await rpc('admin_users') })],
+  ['DELETE', /^\/admin\/users\/([\w-]+)$/, (q, b, [id]) => rpc('admin_delete_user', { p_id: id })],
   ['PATCH', /^\/admin\/users\/([\w-]+)$/, (q, b, [id]) => rpc('admin_update_user', { p_id: id, p: b })],
   ['POST', /^\/admin\/users\/([\w-]+)\/reset-password$/, async (q, b, [id]) => ({ tempPassword: await rpc('admin_reset_password', { p_id: id }) })],
   ['PUT', /^\/admin\/days\/([\d-]+)\/signup\/([\w-]+)$/, (q, b, [d, u]) =>
