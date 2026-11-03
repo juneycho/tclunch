@@ -11,10 +11,11 @@ const D = {
   },
   loading: { ko: '불러오는 중…', en: 'Loading…', vi: 'Đang tải…' },
   name: { ko: '이름', en: 'Name', vi: 'Họ tên' },
-  namePlaceholder: { ko: '홍길동', en: 'Your name', vi: 'Nguyễn Văn A' },
+  namePlaceholder: { ko: 'Hong Gildong', en: 'Hong Gildong', vi: 'Nguyen Van A' },
+  englishOnly: { ko: '영어(알파벳)로만 쓸 수 있어요.', en: 'Use English letters only.', vi: 'Chỉ dùng chữ cái tiếng Anh (không dấu).' },
   enter: { ko: '들어가기', en: 'Enter', vi: 'Vào' },
   entering: { ko: '들어가는 중…', en: 'Entering…', vi: 'Đang vào…' },
-  loginHint: { ko: '이름만 쓰고 사용하시면 됩니다.', en: 'Just enter your name to use the app.', vi: 'Chỉ cần nhập tên là dùng được.' },
+  loginHint: { ko: '영어로 이름(닉네임)만 쓰고 예약하시면 됩니다.', en: 'Just enter your name (or nickname) in English to book.', vi: 'Chỉ cần nhập tên (biệt danh) bằng tiếng Anh để đăng ký.' },
   adminPassword: { ko: '관리자 비밀번호', en: 'Admin password', vi: 'Mật khẩu quản trị' },
   adminPwHint: { ko: '관리자 계정이라 비밀번호가 필요해요.', en: 'This is an admin account, so a password is required.', vi: 'Đây là tài khoản quản trị nên cần mật khẩu.' },
   hello: { ko: '{name}님', en: 'Hi, {name}', vi: 'Chào {name}' },
@@ -37,7 +38,7 @@ const D = {
   people: { ko: '{n}명', en: '{n}', vi: '{n}' },
   peopleLong: { ko: '{n}명', en: '{n} people', vi: '{n} người' },
   adminCanEdit: { ko: '관리자는 수정 가능', en: 'admin can edit', vi: 'quản trị viên có thể sửa' },
-  namedPlaceholder: { ko: '이름 쓰고 등록 (1명)', en: 'Name (1 person)', vi: 'Tên (1 người)' },
+  namedPlaceholder: { ko: '영어 이름 쓰고 등록 (1명)', en: 'Name in English (1 person)', vi: 'Tên tiếng Anh (1 người)' },
   namedAddBtn: { ko: '등록', en: 'Add', vi: 'Thêm' },
   namedAdded: { ko: '{name} 1명을 등록했어요.', en: 'Added {name}.', vi: 'Đã thêm {name}.' },
   mealTimes: { ko: '{n}회', en: '{n} times', vi: '{n} lần' },
@@ -415,3 +416,6 @@ export function renderNotification(n, lang) {
     default: return { title: n.title, body: n.body };
   }
 }
+
+// 이름은 영어로만: 알파벳·숫자·공백·. - 만 남긴다
+export const englishName = (v) => v.replace(/[^A-Za-z0-9 .\-]/g, '').replace(/^\s+/, '').replace(/\s{2,}/g, ' ');

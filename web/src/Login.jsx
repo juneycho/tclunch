@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from './api.js';
-import { useT } from './i18n.js';
+import { englishName, useT } from './i18n.js';
 import { Brand, LangPicker } from './Brand.jsx';
 import { isStandalone } from './push.js';
 
@@ -11,6 +11,7 @@ export default function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [needPw, setNeedPw] = useState(false);
   const [msg, setMsg] = useState(null);
+  const [stripped, setStripped] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   useEffect(() => { api('/notice').then((r) => setNotice(r.text || '')).catch(() => {}); }, []);
@@ -20,7 +21,7 @@ export default function Login({ onLogin }) {
     setMsg(null);
     setBusy(true);
     try {
-      const r = await api('/auth/enter', { method: 'POST', body: { name, password: needPw ? password : undefined } });
+      const r = await api('/auth/enter', { method: 'POST', body: { name: name.trim(), password: needPw ? password : undefined } });
       if (r.needPassword) setNeedPw(true);
       else onLogin(r.user);
     } catch (err) {
@@ -34,8 +35,10 @@ export default function Login({ onLogin }) {
       <Brand />
       <div className="deadline-note">{t('deadlineNotice')}</div>
       <form className="card form" onSubmit={submit}>
-        <label>{t('name')}<input value={name} onChange={(e) => { setName(e.target.value); setNeedPw(false); }} required maxLength={10}
+        <label>{t('name')}<input value={name} required maxLength={20} lang="en" autoCapitalize="words" autoCorrect="off" spellCheck={false}
+          onChange={(e) => { const v = englishName(e.target.value); setStripped(v !== e.target.value.replace(/^\s+/, '').replace(/\s{2,}/g, ' ')); setName(v); setNeedPw(false); }}
           placeholder={t('namePlaceholder')} autoComplete="username" autoFocus /></label>
+        {stripped && <p className="err small">{t('englishOnly')}</p>}
         {needPw && (
           <label>{t('adminPassword')}<input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
             required autoComplete="current-password" autoFocus /></label>

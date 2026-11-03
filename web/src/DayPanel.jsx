@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { api } from './api.js';
-import { deadlineParts, fmtDay, useT } from './i18n.js';
+import { deadlineParts, englishName, fmtDay, useT } from './i18n.js';
 import MyDay from './MyDay.jsx';
 
 // 신청자별 인원 (본인 포함 여부는 구분하지 않는다)
@@ -112,7 +112,8 @@ export function NamedAdd({ date, onDone }) {
   return (
     <form className="named-add" onSubmit={submit}>
       <div className="row gap">
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('namedPlaceholder')} maxLength={40} />
+        <input value={name} onChange={(e) => setName(englishName(e.target.value))} placeholder={t('namedPlaceholder')} maxLength={20}
+          lang="en" autoCapitalize="words" autoCorrect="off" spellCheck={false} />
         <button className="primary" disabled={busy || !name.trim()}>{t('namedAddBtn')}</button>
       </div>
       {msg && <p className={`${msg.ok ? 'ok' : 'err'} small`}>{msg.text}</p>}
