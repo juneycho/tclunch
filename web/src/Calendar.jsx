@@ -80,6 +80,7 @@ export default function Calendar({ user, summary, onChange }) {
           <div className="row between">
             <b>{fmtDay(q.date, t.lang)}{q.mealDay ? ` · ${t('total')} ${t('peopleLong', { n: q.total })}` : ''}</b>
             <span className="row gap">
+              {q.mealDay && user.isAdmin && <button className="link small" onClick={() => setOpen(q.date)}>{t('namedAddLink')}</button>}
               {q.mealDay && <button className="link small" onClick={() => setOpen(q.date)}>{t('details')}</button>}
               <button className="x" onClick={() => setQuick(null)} aria-label={t('close')}>✕</button>
             </span>

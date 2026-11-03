@@ -19,7 +19,9 @@ export default function History({ user }) {
   async function remove(d, p) {
     if (!window.confirm(t('confirmRemovePerson', { d: fmtDay(d.date, t.lang), name: p.name, n: p.count }))) return;
     try {
-      await api(`/admin/days/${d.date}/people/${p.id}`, { method: 'DELETE' });
+      await (p.named
+        ? api(`/admin/days/${d.date}/named`, { method: 'PUT', body: { name: p.name, count: 0 } })
+        : api(`/admin/days/${d.date}/people/${p.id}`, { method: 'DELETE' }));
       await load(data.month);
     } catch (e) { setErr(e.message); }
   }
@@ -43,7 +45,7 @@ export default function History({ user }) {
                   <tr key={d.date} className={d.date < data.today ? 'past' : d.date === data.today ? 'today' : ''}>
                     <td className="date">{fmtDay(d.date, t.lang)}</td>
                     <td>{d.people.map((p) => (
-                      <span key={p.id} className="chip">{p.name} <b>{t('peopleLong', { n: p.count })}</b>
+                      <span key={p.id || `n:${p.name}`} className="chip">{p.name} <b>{t('peopleLong', { n: p.count })}</b>
                         {user?.isAdmin && <button className="chip-x" aria-label={t('remove')} onClick={() => remove(d, p)}>✕</button>}
                       </span>
                     ))}</td>

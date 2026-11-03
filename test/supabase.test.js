@@ -410,3 +410,25 @@ test('관리자는 마감 후에도 아무나의 인원을 맞출 수 있음, �
   d = await rpc('admin', 'admin_set_count', { p_date: '2026-11-10', p_user: users.lee, p_count: 1 });
   assert.equal(d.total, 1);
 });
+
+test('관리자는 이름을 직접 적어 인원을 넣고 고칠 수 있음 (앱 사용자 이름이면 그 사람 인원)', async () => {
+  await rpc('kim', 'set_my_count', { p_date: '2026-11-10', p_count: 1 });
+  await rejects(rpc('lee', 'admin_set_named', { p_date: '2026-11-10', p_name: '홍길동', p_count: 2 }), /관리자만/);
+  let d = await rpc('admin', 'admin_set_named', { p_date: '2026-11-10', p_name: ' 홍길동 ', p_count: 2 });
+  assert.equal(d.total, 3);
+  await rpc('admin', 'set_my_count', { p_date: '2026-11-10', p_count: 1 });   // 관리자 본인 인원은 이름 붙은 인원과 별개
+  let g = await rpc('admin', 'get_day', { p_date: '2026-11-10' });
+  assert.deepEqual([g.total, g.myGuests + (g.mine ? 1 : 0)], [4, 1]);
+  assert.equal(g.guestEntries.find((e) => e.name === '홍길동').count, 2);
+  await rpc('admin', 'admin_set_named', { p_date: '2026-11-10', p_name: '홍길동', p_count: 3 });
+  const kimName = (await rpc('kim', 'get_day', { p_date: '2026-11-10' })).roster[0].name;
+  await rpc('admin', 'admin_set_named', { p_date: '2026-11-10', p_name: kimName, p_count: 2 });   // 있는 사람 → 그 사람 인원
+  const h = await rpc('admin', 'history_list', { p_month: '2026-11' });
+  const people = Object.fromEntries(h.days[0].people.map((p) => [p.name, p.count]));
+  assert.equal(people['홍길동'], 3);
+  assert.equal(people[kimName], 2);
+  assert.equal(h.days[0].total, 6);
+  assert.equal(h.totals.find((t) => t.name === '홍길동').count, 3);
+  await rpc('admin', 'admin_set_named', { p_date: '2026-11-10', p_name: '홍길동', p_count: 0 });
+  assert.equal((await rpc('admin', 'get_day', { p_date: '2026-11-10' })).total, 3);
+});

@@ -7,10 +7,13 @@ import MyDay from './MyDay.jsx';
 function people(d) {
   const map = new Map(d.roster.map((r) => [r.id, { id: r.id, name: r.name, count: 1, signedUp: true, entries: [] }]));
   for (const g of d.guestEntries) {
-    const p = map.get(g.hostId) || { id: g.hostId, name: g.host, count: 0, signedUp: false, entries: [] };
+    // 관리자가 이름을 적어 넣은 인원은 그 이름으로 따로 보인다
+    const key = g.name ? `n:${g.name}` : g.hostId;
+    const p = map.get(key) || (g.name ? { id: null, name: g.name, named: true, count: 0, entries: [] }
+      : { id: g.hostId, name: g.host, count: 0, signedUp: false, entries: [] });
     p.count += g.count;
     p.entries.push(g.id);
-    map.set(g.hostId, p);
+    map.set(key, p);
   }
   return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -36,7 +39,9 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
     } catch (e) { setMsg({ ok: false, text: e.message }); return false; } finally { setBusy(false); }
   }
 
-  const setCount = (p, n) => act(() => api(`/admin/days/${date}/people/${p.id}/count`, { method: 'PUT', body: { count: n } }));
+  const setCount = (p, n) => act(() => (p.named
+    ? api(`/admin/days/${date}/named`, { method: 'PUT', body: { name: p.name, count: n } })
+    : api(`/admin/days/${date}/people/${p.id}/count`, { method: 'PUT', body: { count: n } })));
   const day = fmtDay(date, t.lang);
 
   return (
@@ -68,7 +73,7 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
             <h3>{t('byPerson')}</h3>
             <ul className="roster">
               {people(d).map((p) => (
-                <li key={p.id}>
+                <li key={p.id || `n:${p.name}`}>
                   <span>{p.name}</span>
                   {user.isAdmin ? (
                     // 관리자: 마감·지난 날도 바로 −/+ (0이 되면 삭제)
@@ -83,9 +88,36 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
               ))}
               {!d.total && <li className="muted">{t('nobodyYet')}</li>}
             </ul>
+            {user.isAdmin && <NamedAdd busy={busy} onAdd={(name, n) => act(() => api(`/admin/days/${date}/named`, { method: 'PUT', body: { name, count: n } }), t('namedAdded', { name, n }))} />}
           </>
         )}
       </div>
     </div>
+  );
+}
+
+// 관리자: 이름을 적고 인원을 정해 추가 (앱에 들어온 적 없는 사람도 됨, 같은 이름이면 그 인원으로 바뀜)
+function NamedAdd({ busy, onAdd }) {
+  const t = useT();
+  const [name, setName] = useState('');
+  const [n, setN] = useState(1);
+  async function submit(e) {
+    e.preventDefault();
+    if (!name.trim()) return;
+    if (await onAdd(name.trim(), n)) { setName(''); setN(1); }
+  }
+  return (
+    <form className="card named-add" onSubmit={submit}>
+      <b className="small">{t('namedAddTitle')}</b>
+      <div className="row gap">
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('namedPlaceholder')} maxLength={40} className="grow" />
+        <span className="stepper mini">
+          <button type="button" disabled={busy || n <= 1} onClick={() => setN(n - 1)} aria-label={t('fewer')}>−</button>
+          <b>{t('peopleLong', { n })}</b>
+          <button type="button" disabled={busy} onClick={() => setN(n + 1)} aria-label={t('more')}>+</button>
+        </span>
+      </div>
+      <button className="primary full" disabled={busy || !name.trim()}>{t('namedAddBtn')}</button>
+    </form>
   );
 }

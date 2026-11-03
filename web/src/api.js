@@ -132,6 +132,7 @@ const routes = [
   ['PUT', /^\/admin\/days\/([\d-]+)$/, (q, b, [d]) =>
     rpc('admin_set_day', { p_date: d, p_closed: !!b.closed, p_note: b.note || null, p_reset: !!b.reset })],
   ['PUT', /^\/admin\/notice$/, (q, b) => rpc('admin_save_notice', { p_text: b.text || '' })],
+  ['PUT', /^\/admin\/days\/([\d-]+)\/named$/, (q, b, [d]) => rpc('admin_set_named', { p_date: d, p_name: b.name, p_count: Number(b.count) })],
   ['PUT', /^\/admin\/days\/([\d-]+)\/people\/([\w-]+)\/count$/, (q, b, [d, u]) => rpc('admin_set_count', { p_date: d, p_user: u, p_count: Number(b.count) })],
   ['DELETE', /^\/admin\/days\/([\d-]+)\/people\/([\w-]+)$/, (q, b, [d, u]) => rpc('admin_remove_person', { p_date: d, p_user: u })],
   ['GET', /^\/admin\/settings$/, () => rpc('admin_get_settings')],
