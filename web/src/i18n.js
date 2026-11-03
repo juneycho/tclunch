@@ -284,7 +284,7 @@ const D = {
   errWrongAdminPw: { ko: '관리자 비밀번호가 틀렸어요.', en: 'Wrong admin password.', vi: 'Sai mật khẩu quản trị.' },
   errWrongLogin: { ko: '아이디 또는 비밀번호가 틀렸어요.', en: 'Wrong name or password.', vi: 'Sai tên hoặc mật khẩu.' },
   errRegister: { ko: '등록하지 못했어요. 이름이 10자를 넘거나 이미 있는 이름인지 확인해 주세요.', en: 'Could not register. The name may be too long or already taken.', vi: 'Không đăng ký được. Tên có thể quá dài hoặc đã tồn tại.' },
-  errUnavailable: { ko: '사용할 수 없는 이름이에요. 관리자에게 물어봐 주세요.', en: 'This name cannot be used. Please ask an admin.', vi: 'Không dùng được tên này. Hãy hỏi quản trị viên.' },
+  errUnavailable: { ko: '관리자가 이 이름을 사용 중지해 두었어요. 관리자(TC)가 ⚙ → 직원에서 상태를 '재직'으로 바꾸면 들어올 수 있어요.', en: 'An admin has deactivated this name. The admin (TC) can turn it back on in ⚙ → People.', vi: 'Quản trị viên đã tắt tên này. Quản trị viên (TC) có thể bật lại trong ⚙ → Nhân viên.' },
   errCurrentPw: { ko: '현재 비밀번호가 틀렸어요.', en: 'The current password is wrong.', vi: 'Mật khẩu hiện tại sai.' },
   errNewPwLen: { ko: '새 비밀번호는 4자리 이상이에요.', en: 'The new password needs 4+ characters.', vi: 'Mật khẩu mới cần từ 4 ký tự.' },
   errNotFound: { ko: '없는 기능이에요.', en: 'Unknown action.', vi: 'Không có chức năng này.' },

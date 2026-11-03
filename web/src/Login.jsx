@@ -35,7 +35,7 @@ export default function Login({ onLogin }) {
       <Brand />
       <div className="deadline-note">{t('deadlineNotice')}</div>
       <form className="card form" onSubmit={submit}>
-        <label>{t('name')}<input value={name} required maxLength={20} lang="en" autoCapitalize="words" autoCorrect="off" spellCheck={false}
+        <label>{t('name')}<input value={name} required maxLength={10} lang="en" autoCapitalize="words" autoCorrect="off" spellCheck={false}
           onChange={(e) => { const v = englishName(e.target.value); setStripped(v !== e.target.value.replace(/^\s+/, '').replace(/\s{2,}/g, ' ')); setName(v); setNeedPw(false); }}
           placeholder={t('namePlaceholder')} autoComplete="username" autoFocus /></label>
         {stripped && <p className="err small">{t('englishOnly')}</p>}

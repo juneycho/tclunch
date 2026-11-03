@@ -112,7 +112,7 @@ export function NamedAdd({ date, onDone }) {
   return (
     <form className="named-add" onSubmit={submit}>
       <div className="row gap">
-        <input value={name} onChange={(e) => setName(englishName(e.target.value))} placeholder={t('namedPlaceholder')} maxLength={20}
+        <input value={name} onChange={(e) => setName(englishName(e.target.value))} placeholder={t('namedPlaceholder')} maxLength={10}
           lang="en" autoCapitalize="words" autoCorrect="off" spellCheck={false} />
         <button className="primary" disabled={busy || !name.trim()}>{t('namedAddBtn')}</button>
       </div>
