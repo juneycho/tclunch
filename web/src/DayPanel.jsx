@@ -63,7 +63,7 @@ export default function DayPanel({ date, user, summary, onClose, onChange }) {
               <div><b>{d.total}</b><span>{t('total')}</span></div>
             </div>
             {(d.phase === 'open' || user.isAdmin) && (
-              <div className="card"><MyDay date={date} count={(d.mine ? 1 : 0) + (d.myGuests || 0)} onDone={async () => { await load(); onChange(); }} /></div>
+              <div className="card"><MyDay simple={!user.isAdmin} date={date} count={(d.mine ? 1 : 0) + (d.myGuests || 0)} onDone={async () => { await load(); onChange(); }} /></div>
             )}
             {user.isMember && !user.isAdmin && d.phase === 'confirmed' && (
               <p className="small muted">{d.mine ? `${t('signedUpClosed')} ` : ''}{t('closedChange')}</p>

@@ -87,7 +87,7 @@ export default function Calendar({ user, summary, onChange }) {
           </div>
           {q.mealDay && q.phase !== 'open' && user.isAdmin && <p className="small muted">{closedText(q)} · {t('adminCanEdit')}</p>}
           {q.mealDay && (q.phase === 'open' || user.isAdmin)
-            ? <MyDay date={q.date} count={myCount(q)} onDone={async () => { await load(month); onChange(); }} />
+            ? <MyDay simple={!user.isAdmin} date={q.date} count={myCount(q)} onDone={async () => { await load(month); onChange(); }} />
             : <p className="small muted">{closedText(q)}{myCount(q) ? ` · ${t('myCount')} ${t('peopleLong', { n: myCount(q) })}` : ''}</p>}
           {msg && <p className="err small">{msg}</p>}
         </div>
