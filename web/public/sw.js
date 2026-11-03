@@ -7,6 +7,9 @@ self.addEventListener('push', (event) => {
   try { data = event.data.json(); } catch { data = { title: 'Thanh Cong Lunch', body: event.data?.text() }; }
   event.waitUntil(self.registration.showNotification(data.title || 'Thanh Cong Lunch', {
     body: data.body || '', icon: '/icon-192.png', badge: '/icon-192.png',
+    // 진동·소리가 나도록 (휴대폰이 무음/방해금지면 휴대폰 설정이 우선)
+    vibrate: [300, 150, 300, 150, 300], silent: false,
+    tag: 'tc-lunch', renotify: true, requireInteraction: true,
   }));
 });
 
