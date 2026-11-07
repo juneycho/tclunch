@@ -41,7 +41,7 @@ export default function History({ user }) {
             <table className="grid hist">
               <thead><tr><th>{t('colDate')}</th><th>{t('colPeople')}</th><th className="num">{t('colTotal')}</th></tr></thead>
               <tbody>
-                {data.days.map((d) => (
+                {[...data.days].sort((a, b) => b.date.localeCompare(a.date)).map((d) => (   // 늦은 날짜(차주·금주)가 위, 지난 날은 아래
                   <tr key={d.date} className={d.date < data.today ? 'past' : d.date === data.today ? 'today' : ''}>
                     <td className="date">{fmtDay(d.date, t.lang)}</td>
                     <td>{d.people.map((p) => (
